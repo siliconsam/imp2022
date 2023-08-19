@@ -1,0 +1,57 @@
+%begin
+
+    %constantinteger bl = -1, bu = 8
+    %byte %array baggins(bl:bu)
+    
+    %integer v,a,b
+
+    %routine onedimarray( %byte %array %name x, %integer a,b )
+        %integer i
+        %for i = a,1,b %cycle
+            x(i) = i
+        %repeat
+    %end
+
+    %routine WriteHexInteger( %integer n )
+        %integer d,i
+
+        %for i = 28,-4,0 %cycle
+            d = 15 & (n >> i);
+            %if (d > 9) %start
+                printsymbol(d - 10 + 'A')
+            %else
+                printsymbol( d + '0' )
+            %finish
+        %repeat
+    %end
+
+    selectoutput(1)
+
+    printstring("Start array initialisation");newline
+    v = 0
+    %for a = bl,1,bu %cycle
+        v = v + 1
+        baggins(a) = v
+    %repeat
+    printstring("End array initialisation"); newline
+
+    printstring("Start baggins array initialisation");newline
+    onedimarray( baggins, bu, bl)
+    printstring("End baggins array initialisation"); newline
+
+    printstring("Start array readout");newline
+    %for a = bl,1,bu %cycle
+        b = baggins(a)
+        printstring( "baggins(" )
+        printstring( itos(a,0) )
+        printstring( ")=" )
+        printstring( itos(b,0))
+        printstring( " or as hex " )
+        writehexinteger( baggins(a) )
+        printstring( " address=" )
+        WriteHexInteger( addr( baggins(a) ) )
+        newline
+    %repeat
+    printstring("End baggins array readout"); newline
+
+%endofprogram

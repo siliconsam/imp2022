@@ -1,0 +1,138 @@
+
+%include "boolean.def.inc"
+%include "boolean.inc"
+
+!----------------------------------------------------------------------
+! referenced symbols
+!----------------------------------------------------------------------
+
+! Symbols information
+! Formed from REQEXT,REFEXT,ABSEXT
+! valid: from (ref > 0)
+! ref: from REFEXT, ABSEXT
+! name: from REQEXT, ABSEXT
+%constinteger max symbols = 500
+%record %format symbol( %byte valid,
+                        %integer id,
+                        %integer ref,
+                        %string(127) name)
+%own %record(symbol)%array symbols(1:max symbols)
+%own %integer symbol count
+
+!----------------------------------------------------------------------
+! new symbol: REQEXT
+!----------------------------------------------------------------------
+%external %integer %fn new symbol( %string(127) symbol name )
+    symbol count = symbol count + 1
+    symbols( symbol count )_id = symbol count
+    symbols( symbol count )_name = symbol name
+
+    %result = symbol count
+%end
+
+!----------------------------------------------------------------------
+! reference symbol: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+%external %routine reference symbol( %integer symbolid )
+    symbols( symbolid )_ref = symbols( symbolid )_ref + 1
+    symbols( symbolid )_valid = TRUE
+%end
+
+!----------------------------------------------------------------------
+! get symbol name: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+%external %string(127)%fn get symbol name( %integer symbolid )
+    %string(127) name
+
+    name = symbols( symbolid )_name
+
+    %result = name
+%end
+
+!----------------------------------------------------------------------
+! get symbol id: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+%external %integer %fn get symbol id( %integer symbolid )
+    %integer id
+
+    id = symbols( symbolid )_id
+
+    %result = id
+%end
+
+!----------------------------------------------------------------------
+! get symbol valid: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+%external %byte %fn get symbol valid( %integer symbolid )
+    %byte valid
+
+    valid = symbols( symbolid )_valid
+
+    %result = valid
+%end
+
+!----------------------------------------------------------------------
+! update all symbols
+!----------------------------------------------------------------------
+%external %routine update all symbols
+    %integer symbolid
+    %integer i
+
+    symbolid = 0
+    %for i=1,1,symbol count %cycle
+        %if (symbols( i )_ref = 0) %start
+            symbols( i )_valid = FALSE
+        %finish
+
+        %if (symbols(i)_valid = TRUE) %start
+            symbolid = symbolid + 1
+            symbols(i)_id = symbolid
+        %finish
+
+    %repeat
+%end
+
+!----------------------------------------------------------------------
+! dump symbols
+!----------------------------------------------------------------------
+%external %routine dump symbols( %integer show all )
+    %integer i
+
+    newline
+    %if (show all = TRUE) %start
+        print string( "Dumping ALL symbols" ); newline
+    %finish %else %start
+        print string( "Dumping VALID symbols" ); newline
+    %finish
+
+    %for i = 1,1,symbol count %cycle
+        %if (show all = TRUE) %or (symbols(i)_valid = TRUE) %start
+            print string( "[" )
+            print string( itos(i,5) )
+            print string( "/" )
+            print string( itos(symbols(i)_id,5) )
+            print string( "] " )
+            print symbol( '"' )
+            print string( symbols(i)_name )
+            print symbol( '"' )
+            newline
+        %finish
+    %repeat
+%end
+
+!----------------------------------------------------------------------
+! initialise symbols
+!----------------------------------------------------------------------
+%external %routine initialise symbols
+    %integer i
+
+    %for i = 1,1,max symbols %cycle
+        symbols(i)_valid = FALSE
+        symbols(i)_ref = 0
+        symbols(i)_id = 0
+        symbols(i)_name = ""
+    %repeat
+    symbol count = 0
+%end
+
+%endoffile

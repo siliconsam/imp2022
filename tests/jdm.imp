@@ -1,0 +1,11 @@
+%begin
+   %integer a,b,c
+
+   a = -34 + 12
+   b = |a|
+   c = a
+
+   printstring("mod|a|=".itos(b,0)); newline
+   printstring("mod!a!=".itos(c,0)); newline
+%end
+%endoffile

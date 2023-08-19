@@ -1,0 +1,17 @@
+
+%include "boolean.def.inc"
+
+!----------------------------------------------------------------------
+! boolean string
+!----------------------------------------------------------------------
+%external %string(15) %function booleanstring( %integer flag )
+    %string(15) s
+
+    s = "UNKNOWN"
+    %if (flag = FALSE) %then s = "FALSE"
+    %if (flag = TRUE) %then  s = "TRUE"
+
+    %result = s
+%end
+
+%endoffile
