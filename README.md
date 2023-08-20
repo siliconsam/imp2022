@@ -208,6 +208,19 @@ To build these utilities:
     4) cd ../ibj
     5) make install
 
+BUILDING WINDOWS VERSION
+
+Obtain the pre-requisite software for Windows
+
+1) Copy/Git pull the git repository folder tree to a Windows folder
+2) Ensure the Visual Studio 32-bit command shell can access the FreePascal compiler
+2) Run the buildwindows.bat script inside a command shell with access to the Visual Studio
+   32-bit command line C compiler and linker.
+3) This generates a release folder tree with a Windows version of the IMP compiler
+4) Modify the setenv.bat script to point to the correct version of the Free Pascal compiler
+5) When using the Visual Studio 32-bit command shell ensure you ALWAYS call setenv.bat
+    This will give access to the IMP compiler and associated utilities.
+
 Good luck and enjoy!
 
 Original implementation by:
