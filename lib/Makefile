@@ -97,3 +97,8 @@ superclean: #
 %.o: %.c
 # Ensure all C source files have Unix line-endings
 > $(CC) -c $(CCFLAGS) $<
+
+initlinux: #
+> cp ./linux/*.ibj ./*
+> cp ./linux/*.imp ./*
+> cp ./linux/*.inc ./*
