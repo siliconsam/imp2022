@@ -17,9 +17,18 @@ COMMON PRE-REQUISITES
 
 PRE-REQUISITES FOR LINUX
 
-* A C compiler and libraries. (Build tested against the gcc compiler suite)
+* Ensure the Linux system has the latest software
+    * sudo apt update   (or equivalent Linux command)
+    * sudo apt upgrade  (or equivalent Linux command)
 * dos2unix
-* File + executable access to the /usr/local folder and sub-folders
+    * sudo apt install dos2unix (or equivalent command)
+* A C compiler and libraries. (Build tested against the gcc compiler suite)
+    * Ensure the C compiler can compile/link 32-bit code
+    * sudo apt install gcc-multilib  (for the gcc compiler)
+* The FreePascal compiler (required for the .ibj, .icd file utilities)
+    * sudo apt install fpc  (or equivalent Linux command)
+* Read, Write + executable access to the /usr/local folder and sub-folders
+
 
 PRE-REQUISITES FOR WINDOWS (Versions 8 upwards)
 
@@ -50,7 +59,7 @@ policies, so you may need to make some changes.  In particular:
 
     Imp-77 event handling depends on the individual event traps being in
     one section "ITRAP" in the order of ITRAP$B sections, then all ITRAP$D sections
-    and finally the ITRAP%F section.
+    and finally the ITRAP$F section.
     The Windows linker does this automatically
     Versions of the GCC binutils loader ld (upto 2.27) under WSL/Linux seem ok!
     Versions of the GCC binutils loader ld (after 2.27) have problems with relocation records
@@ -103,7 +112,7 @@ The order of bootstrapping is...
         If ld.script only uses .rela relocation then use ld.i77.script
 
     * build the pass3 program (used to generate the Elf .o files from .ibj files)
-        Pass3 program is generated from the pass3elf.c source (generates .rel relocations)
+        The pass3 program is generated from the pass3elf.c source (generates .rel relocations)
     cd imp2022/pass3
     make install
 
@@ -173,7 +182,8 @@ The .imp extension of the source file must be given
 
 The options can be combined.
 e.g. imp77 -c -Fc -Fs -Fi pass2.imp
-This retains all the intermediate files and generates the pass2 executable.
+This retains all the intermediate files and generates the pass2 object file with
+the .cod, .lsr, .ibj, .icd also being retained.
 
 There is an additional script imp77link which can take an IMP program split
 into several Imp source files and individually generate the ELF object files
@@ -202,7 +212,7 @@ These are:
         This is equivalent to the pass3coff executable
 
 To build these utilities:
-    1) Install the FreePascal compiler
+    1) Install the FreePascal compiler (fpc)
     2) cd tools/icd
     3) make install
     4) cd ../ibj
@@ -213,6 +223,7 @@ BUILDING WINDOWS VERSION
 Obtain the pre-requisite software for Windows
 
 1) Copy/Git pull the git repository folder tree to a Windows folder
+    (or obtain a .zip file of the folder source and unzip to a folder of your choice)
 2) Ensure the Visual Studio 32-bit command shell can access the FreePascal compiler
 2) Run the buildwindows.bat script inside a command shell with access to the Visual Studio
    32-bit command line C compiler and linker.
