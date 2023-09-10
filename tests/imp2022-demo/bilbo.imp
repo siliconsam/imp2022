@@ -1,0 +1,25 @@
+
+    ! Store a simple count
+    %owninteger count = 42
+
+    %external %routine getPc %alias "get_pc"
+        *mov _	(%esp), %eax
+    %end
+
+    %external %routine zerocount %alias "xzero"
+        count = 0
+    %end
+
+    %external %routine increment %alias "xinc"
+        count = count + 1
+    %end
+
+    %external %routine decrement %alias "xdec"
+        count = count - 1
+    %end
+
+    %external %integer %function value %alias "xvalue"
+        %result = count
+    %end
+
+%endoffile

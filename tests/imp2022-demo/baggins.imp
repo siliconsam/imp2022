@@ -1,0 +1,16 @@
+%begin
+    %external %routine           %spec zerocount %alias "xzero"
+    %external %routine           %spec increment %alias "xinc"
+    %external %routine           %spec decrement %alias "xdec"
+    %external %integer %function %spec value %alias "xvalue"
+
+    %integer i
+
+    %for i = 1,1,10 %cycle
+        increment
+    %repeat
+
+    printstring("Value = ".itos(value,0)); newline
+
+%end
+%endoffile
