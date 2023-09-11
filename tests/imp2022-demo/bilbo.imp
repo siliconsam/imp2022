@@ -19,7 +19,7 @@
     %end
 
     %external %routine getPc %alias "get_pc"
-        *mov _	(%esp), %eax
+        *mov _	[%esp], %eax
     %end
 
 %endoffile
