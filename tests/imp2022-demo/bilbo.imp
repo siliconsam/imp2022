@@ -2,10 +2,6 @@
     ! Store a simple count
     %owninteger count = 42
 
-    %external %routine getPc %alias "get_pc"
-        *mov _	(%esp), %eax
-    %end
-
     %external %routine zerocount %alias "xzero"
         count = 0
     %end
@@ -20,6 +16,10 @@
 
     %external %integer %function value %alias "xvalue"
         %result = count
+    %end
+
+    %external %routine getPc %alias "get_pc"
+        *mov _	(%esp), %eax
     %end
 
 %endoffile
