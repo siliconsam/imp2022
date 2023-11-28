@@ -9,7 +9,6 @@ BINDIR = ${BASEDIR}/bin
 
 SRC=pass3coff.c \
     pass3elf.c \
-    pass3elfa.c \
     ifreader.c \
     writebig.c
 
@@ -18,7 +17,7 @@ all: pass3
 
 # We need to build pass1,pass2 from their .o files (created by the cross build script make.bat)
 # Also build pass3 completely from source
-bootstrap: pass3coff pass3elf pass3elfa ld.i77.script imp77 imp77link
+bootstrap: pass3coff pass3elf ld.i77.script imp77 imp77link
 # Just in case convert source files to have Linux line-endings
 > dos2unix *.c
 > dos2unix *.h
@@ -28,17 +27,15 @@ bootstrap: pass3coff pass3elf pass3elfa ld.i77.script imp77 imp77link
 # Now install the programs
 > install -t $(BINDIR) pass3coff
 > install -t $(BINDIR) pass3elf
-> install -t $(BINDIR) pass3elfa
 > install -t $(BINDIR) ld.i77.script
 > install -t $(BINDIR) imp77
 > install -t $(BINDIR) imp77link
 
 # We need to build pass1, pass2 and pass3
-install: pass3coff pass3elf pass3elfa ld.i77.script
+install: pass3coff pass3elf ld.i77.script
 # Now install the programs
 > install -t $(BINDIR) pass3coff
 > install -t $(BINDIR) pass3elf
-> install -t $(BINDIR) pass3elfa
 > install -t $(BINDIR) ld.i77.script
 > install -t $(BINDIR) imp77
 > install -t $(BINDIR) imp77link
@@ -46,7 +43,6 @@ install: pass3coff pass3elf pass3elfa ld.i77.script
 # do a minimal tidy up of programs and temporary files
 clean: #
 > rm -f pass3elf
-> rm -f pass3elfa
 > rm -f pass3coff
 > rm -f *.o
 
@@ -56,9 +52,6 @@ superclean: clean
 
 pass3elf: pass3elf.o ifreader.o writebig.o
 > $(CC) -o pass3elf pass3elf.o ifreader.o writebig.o
-
-pass3elfa: pass3elfa.o ifreader.o writebig.o
-> $(CC) -o pass3elfa pass3elfa.o ifreader.o writebig.o
 
 pass3coff: pass3coff.o ifreader.o writebig.o
 > $(CC) -o pass3coff pass3coff.o ifreader.o writebig.o

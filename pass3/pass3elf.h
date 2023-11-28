@@ -61,23 +61,37 @@ typedef struct {
 } Elf32_Shdr;
 
 // and some section types we will use...
-#define SHT_NULL        0
-#define SHT_PROGBITS    1
-#define SHT_SYMTAB      2
-#define SHT_STRTAB      3
-#define SHT_RELA        4
-#define SHT_HASH        5
-#define SHT_DYNAMIC     6
-#define SHT_NOTE        7
-#define SHT_NOBITS      8
-#define SHT_REL         9
-#define SHT_SHLIB       10
-#define SHT_DYNSYM      11
+#define SHT_NULL           0
+#define SHT_PROGBITS       1
+#define SHT_SYMTAB         2
+#define SHT_STRTAB         3
+#define SHT_RELA           4
+#define SHT_HASH           5
+#define SHT_DYNAMIC        6
+#define SHT_NOTE           7
+#define SHT_NOBITS         8
+#define SHT_REL            9
+#define SHT_SHLIB         10
+#define SHT_DYNSYM        11
+#define SHT_INIT_ARRAY    14
+#define SHT_FINI_ARRAY    15
+#define SHT_PREINIT_ARRAY 16
+#define SHT_GROUP         17
+#define SHT_SYMTAB_CHECK  18
 
 // section flags...
 #define SHF_WRITE       0x1 // writable
 #define SHF_ALLOC       0x2 // actually occupies some space
 #define SHF_EXECINSTR   0x4 // executable
+#define SHF_MERGE       0x10 // data can be merged
+#define SHF_STRINGS     0x20 // contains null-terminated strings
+#define SHF_INFO_LINK   0x40 // sh_info has a section header table index
+#define SHF_LINK_ORDER  0x80 // used to build a table (text/data) in address order
+#define SHF_OS_NONCONFORMING 0x100
+#define SHF_GROUP       0x200 // section is a member of a group
+#define SHF_TLS         0x400 // section hold thread-local storage
+#define SHF_ORDERED     0x40000000 // superceded by SHD_LINK_ORDER
+#define SHF_EXCLUDE     0x80000000 // exclude from link of executable/shared object
 
 // ELF symbol table entry
 typedef struct {
@@ -116,6 +130,15 @@ typedef struct{
 } Elf32_Rela;
 
 // the only likely relocations we'll use
-#define R_386_NONE  0
-#define R_386_32    1
-#define R_386_PC32  2
+#define R_386_NONE      0
+#define R_386_32        1
+#define R_386_PC32      2
+#define R_386_GOT32     3
+#define R_386_PLT32     4
+#define R_386_COPY      5
+#define R_386_GLOB_DAT  6
+#define R_386_JMP_SLOT  7
+#define R_386_RELATIVE  8
+#define R_386_GOTOFF    9
+#define R_386_GOTPC    10
+#define R_386_32PLT    11

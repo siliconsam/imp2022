@@ -1,6 +1,6 @@
 .RECIPEPREFIX = >
 
-CC = gcc -m32 -no-pie
+CC = gcc -no-pie ${M32}
 CCFLAGS = -O
 
 BASEDIR = /usr/local
@@ -15,10 +15,13 @@ INCDIR = ${BASEDIR}/include
 # Also use the possibly "tweaked" local loader script
 #LD_SCRIPT = ../pass3/ld.i77.script
 #IMP_LIB = ../lib/libimp77.a
-#LINK_OPT = ../lib/libimp77.a -lm -T $(LDSCRIPT)
+#LINK_OPT = ../lib/libimp77.a -lm -T $(LD_SCRIPT)
 LD_SCRIPT = $(BINDIR)/ld.i77.script
-IMP_LIB = $(LIBDIR)/libimp77.so
-LINK_OPT = -limp77 -lm -T $(LD_SCRIPT)
+IMP_LIB = $(LIBDIR)/libimp77.a
+LINK_OPT = $(LIBDIR)/libimp77.a -lm -T $(LD_SCRIPT)
+#LD_SCRIPT = $(BINDIR)/ld.i77.script
+#IMP_LIB = $(LIBDIR)/libimp77.so
+#LINK_OPT = -limp77 -lm -T $(LD_SCRIPT)
 
 all: takeon pass1 pass2
 

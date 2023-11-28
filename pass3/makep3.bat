@@ -42,8 +42,6 @@
 @if not exist pass3coff.obj @goto errorexit
 @cl /nologo /Gd /c /Gs /W3 /Ox -D_CRT_SECURE_NO_WARNINGS %option% /Fopass3elf.obj pass3elf.c
 @if not exist pass3elf.obj @goto errorexit
-@cl /nologo /Gd /c /Gs /W3 /Ox -D_CRT_SECURE_NO_WARNINGS %option% /Fopass3elfa.obj pass3elfa.c
-@if not exist pass3elfa.obj @goto errorexit
 
 :doifreader
 @cl /nologo /Gd /c /Gs /W3 /Ox ifreader.c
@@ -59,9 +57,6 @@
 
 @link /nologo /stack:80000,80000 /MAPINFO:EXPORTS /OUT:pass3elf.exe  /MAP:pass3elf.map  pass3elf.obj  ifreader.obj writebig.obj
 @if not exist pass3elf.exe @goto errorexit
-
-@link /nologo /stack:80000,80000 /MAPINFO:EXPORTS /OUT:pass3elfa.exe  /MAP:pass3elfa.map  pass3elfa.obj  ifreader.obj writebig.obj
-@if not exist pass3elfa.exe @goto errorexit
 
 @goto end
 

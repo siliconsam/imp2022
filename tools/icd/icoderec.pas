@@ -391,12 +391,12 @@ LINE <l>         Set the current line number to <l>
 (*
 Pass2 Compiler (Intel 386)
 
-    !   OR          G   ALIAS         c
+    !   OR          G   ALIAS         c   ALTNEXT
     "   COMPARED    H   BEGIN         d   DIM
     #   BNE         I                 e   EVENT
     $   DEF         J   JUMP          f   FOR
-    %   XOR         K   FALSE         g
-    &   AND         L   LABEL         h
+    %   XOR         K   FALSE         g   ALTSTART
+    &   AND         L   LABEL         h   ALTEND
     '   PUSHS       M   MAP           i   INDEX
     (   JLE         N   PUSHI         j   JAM
     )   JGE         O   LINE          k   JZ
@@ -441,10 +441,11 @@ chr(10),
 'P','Q','R','S',
 'T','U','V','X',
 'Z','[','\',']',
-'a','b','i','j',
-'m','p','q','s',
-'u','v','x','{',
-'|','}':          ();
+'a','b','c','g',
+'h','i','j','m',
+'p','q','s','u',
+'v','x','{','|',
+'}':              ();
 '#','(',')',':',
 '<','=','>','A',
 'B','F','J','L',
@@ -562,12 +563,12 @@ const
 'SLABEL':    ch := '_';
 'ACCESS':    ch := 'a';
 'BOUNDS':    ch := 'b';
-// c
+'ALTNEXT':   ch := 'c';
 'DIM':       ch := 'd';
 'EVENT':     ch := 'e';
 'FOR':       ch := 'f';
-// g
-// h
+'ALTSTART':  ch := 'g';
+'ALTEND':    ch := 'h';
 'INDEX':     ch := 'i';
 'JAM':       ch := 'j';
 'BF':        ch := 'k';
@@ -657,12 +658,12 @@ chr(10): m := 'ENDOFFILE';
 '_':     m := 'SLABEL';
 'a':     m := 'ACCESS';
 'b':     m := 'BOUNDS';
-// c
+'c':     m := 'ALTNEXT';
 'd':     m := 'DIM';
 'e':     m := 'EVENT';
 'f':     m := 'FOR';
-// g
-// h
+'g':     m := 'ALTSTART';
+'h':     m := 'ALTEND';
 'i':     m := 'INDEX';
 'j':     m := 'JAM';
 'k':     m := 'BF';

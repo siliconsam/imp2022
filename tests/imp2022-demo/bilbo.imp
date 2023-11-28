@@ -1,6 +1,9 @@
 
+    ! Store a simple value
+    %owninteger fubar = 3
+
     ! Store a simple count
-    %owninteger count = 42
+    %owninteger count = 5
 
     %external %routine zerocount %alias "xzero"
         count = 0
@@ -18,8 +21,8 @@
         %result = count
     %end
 
-    %external %routine getPc %alias "get_pc"
-        *mov _	[%esp], %eax
+    %routine getPC %alias "get_pc"
+        *mov _	%eax, [%ebp+4]
     %end
 
 %endoffile

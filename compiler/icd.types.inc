@@ -55,12 +55,12 @@
     %constantbyteinteger iCodeSLABEL    = '_'
     %constantbyteinteger iCodeACCESS    = 'a'
     %constantbyteinteger iCodeBOUNDS    = 'b'
-
+    %constantbyteinteger iCodeALTNEXT   = 'c'
     %constantbyteinteger iCodeDIM       = 'd'
     %constantbyteinteger iCodeEVENT     = 'e'
     %constantbyteinteger iCodeFOR       = 'f'
-
-
+    %constantbyteinteger iCodeALTSTART  = 'g'
+    %constantbyteinteger iCodeALTEND    = 'h'
     %constantbyteinteger iCodeINDEX     = 'i'
     %constantbyteinteger iCodeJAM       = 'j'
     %constantbyteinteger iCodeJZ        = 'k'

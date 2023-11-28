@@ -149,7 +149,7 @@
         es:
         %end
         -> esac
-    esw(*):
+    esw( * ):
         msg = "Signal ".eventmsg." called."; -> esac
     esac:
 
@@ -205,7 +205,7 @@
         selectoutput(0)
         printstring( "IMPRTL: " )
         printstring( "Called from (x'" )
-        printstring( int2ascii(loc,16,0) )
+        printstring( int2hex(loc,8) )
         printstring( "') in '" )
         printstring( handler name( loc ) )
         printstring( "'" )

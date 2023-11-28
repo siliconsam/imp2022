@@ -414,7 +414,7 @@ more:       newline
                     printstring(include file) %if include # 0
                     write(lines, 4);  printsymbol(csym);  space
                 %finish
-                ->fm(n) %if -5 <= n %and n <= 22
+                ->fm(n) %if (-5 <= n <= 22)
                 printstring("fault");  write(n, 2);              ->ps
 
 fm(-5):         printstring("Dubious statement");  dubious = 0;        ->psd
@@ -2021,11 +2021,18 @@ c(148):     fdef = 0 %and ->top %if next = 0;          ! reclb
 
 c(127):     add char( iCodeFINISH );     ->top;        ! %POUT
 c(126):     add char( iCodeSTART );      ->top;        ! %PIN
-c(174):     set bp;                                    ! rangerb
-c(171):     ;                                          ! fmlb
-c(172):     ;                                          ! fmrb
-c(173):     add char( iCodeALT )
-            add char( class-171+'A' );   ->top;        ! fmor
+!c(174):     set bp;                                    ! rangerb
+!c(171):     ;                                          ! fmlb
+!c(172):     ;                                          ! fmrb
+!c(173):     add char( iCodeALT )
+!            add char( class-171+'A' );   ->top;        ! fmor
+
+c(174):     set bp;
+            add char( '~' )
+            add char( class-171+'A' );   ->top;        ! rangerb
+c(171):     add char( iCodeALTSTART );   ->top;        ! fmlb
+c(172):     add char( iCodeALTEND );     ->top;        ! fmrb
+c(173):     add char( iCodeALTNEXT );    ->top;        ! fmor
 c(168):     rbase = -rbase;                            ! orrb
             sstype = 0;  spec mode = 0
 

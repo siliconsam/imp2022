@@ -12,9 +12,9 @@ const
 
     IF_NULL        = -1; // used to guard against empty item list
     IF_OBJ         =  0; // A : plain object code
-    IF_DATA        =  1; // B : dataseg offset code word
-    IF_CONST       =  2; // C : const seg offset code word
-    IF_DISPLAY     =  3; // D : display seg offset code word
+    IF_DATA        =  1; // B : data section offset code word
+    IF_CONST       =  2; // C : const section offset code word
+    IF_DISPLAY     =  3; // D : display section offset code word
     IF_JUMP        =  4; // E : unconditional jump to label
     IF_JCOND       =  5; // F : cond jump to label JE, JNE, JG, JGE, JL, JLE, JA, JAE, JB, JBE
     IF_CALL        =  6; // G : call a label
@@ -24,9 +24,9 @@ const
     IF_REQEXT      = 10; // K : external name spec
     IF_REFLABEL    = 11; // L : reference a label address
     IF_REFEXT      = 12; // M : external name relative offset code word
-    IF_BSS         = 13; // N : BSS segment offset code word
+    IF_BSS         = 13; // N : BSS section offset code word
     IF_COTWORD     = 14; // O : Constant table word
-    IF_DATWORD     = 15; // P : Data segment word
+    IF_DATWORD     = 15; // P : Data section word (repeated) with repeat count
     IF_SWTWORD     = 16; // Q : switch table entry - actually a label ID
     IF_SOURCE      = 17; // R : name of the source file
     IF_DEFEXTCODE  = 18; // S : define a code label that is external
@@ -162,6 +162,7 @@ type
     tDATWORD =
     record
         shortdata : array [1..2] of byte;
+        count     : integer;
     end;
 
     tSWTWORD =
@@ -637,9 +638,10 @@ implementation
         cDATWORD:
             begin
                 // Data segment word
-                checkSize( WORDSIZE div 2 );
+                checkSize( WORDSIZE );
                 theIBJ^.xDATWORD.shortdata[1] := readByte( copy(theData, 1, 2 ) );
                 theIBJ^.xDATWORD.shortdata[2] := readByte( copy(theData, 3, 2 ) );
+                theIBJ^.xDATWORD.count        := readword( copy(theData, 5, 4 ) );
             end;
         cSWTWORD:
             begin

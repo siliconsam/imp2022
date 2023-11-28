@@ -1,9 +1,9 @@
-{ **************************************** }
-{ *                                      * }
-{ * Copyright (c) 2020 J.D.McMullin PhD. * }
-{   All rights reserved.                 * }
-{ *                                      * }
-{ **************************************** }
+(* **************************************** *)
+(* *                                      * *)
+(* * Copyright (c) 2023 J.D.McMullin PhD. * *)
+(*   All rights reserved.                 * *)
+(* *                                      * *)
+(* **************************************** *)
 unit specutil;
 interface
 
@@ -19,8 +19,14 @@ interface
   procedure setSpecUsed( specIndex : integer );
   function getSpecP3Index( specIndex : integer ): integer;
   procedure setSpecP3Index( specIndex : integer; newP3Index : integer );
-  procedure setSpecIsdata( specIndex : integer );
-  function getSpecIsdata( specIndex : integer ): boolean;
+  function getSpecIsData( specIndex : integer ): boolean;
+  procedure setSpecIsData( specIndex : integer );
+  function getSpecIsCode( specIndex : integer ): boolean;
+  procedure setSpecIsCode( specIndex : integer );
+  function getSpecIsLocal( specIndex : integer ): boolean;
+  procedure setSpecIsLocal( specIndex : integer );
+  function getSpecIsGlobal( specIndex : integer ): boolean;
+  procedure setSpecIsGlobal( specIndex : integer );
   function findSpecIndexByNameId( nameId : integer ): integer;
   function findSpecIndexByP3Index( p3Index : integer ): integer;
   procedure remapspecs();
@@ -36,7 +42,10 @@ type
     nameId  : integer;
     p3index : integer;
     used    : boolean;
+    (* isData: false => code, true => data *)
     isdata  : boolean;
+    (* isLocal: false => global, true => local *)
+    islocal : boolean;
   end;
 
   tSpecArray =
@@ -79,33 +88,37 @@ var
   var
     specId : integer;
   begin
-//    specId := -1;
-    // check to see if a spec for this name already exists
+    (* check to see if a spec for this name already exists *)
     specId := findSpecIndexByNameId( nameId );
     if (specId = -1) then
     begin
+      (* Oh, spec doen't exist *)
+      (* so, potentially add it to the list *)
       if (specs.count < MaxSpec) then
       begin
         specs.count := specs.count + 1;
 
         specs.data[specs.count].nameId  := nameId;
-        specs.data[specs.count].p3index := -1;
+        specs.data[specs.count].p3Index := -1;
         specs.data[specs.count].used    := false;
-        specs.data[specs.count].isdata  := false;
-
+        (* default the spec to code *)
+        specs.data[specs.count].isData  := false;
+        (* default visibility to global *)
+        specs.data[specs.count].isLocal := false;
         specId := specs.count;
       end
       else
       begin
         (* report overflow for implementation *)
         writeln('**** FATAL **** Too many Specs for this implementation');
-        writeln('**** INFO  **** Increase MaxName (currently ',MaxSpec,')');
+        writeln('**** INFO  **** Increase MaxSpec (currently ',MaxSpec,')');
       end;
     end
     else
     begin
-      // this spec already exists, so return the existing spec id
-      // this avoids duplicated specs
+      (* this spec already exists, *)
+      (* so return the existing spec id *)
+      (* this avoids duplicated specs *)
     end;
 
     newSpec := specId;
@@ -133,22 +146,52 @@ var
 
   function getSpecP3Index( specIndex : integer ): integer;
   begin
-    getSpecP3Index := specs.data[specIndex].p3index;
+    getSpecP3Index := specs.data[specIndex].p3Index;
   end;
 
   procedure setSpecP3Index( specIndex : integer; newP3Index : integer );
   begin
-    specs.data[specIndex].p3index := newP3Index;
+    specs.data[specIndex].p3Index := newP3Index;
   end;
 
-  procedure setSpecIsdata( specIndex : integer );
+  function getSpecIsData( specIndex : integer ): boolean;
+  begin
+    getSpecIsdata := specs.data[specIndex].isdata;
+  end;
+
+  procedure setSpecIsData( specIndex : integer );
   begin
     specs.data[specIndex].isdata := true;
   end;
 
-  function getSpecIsdata( specIndex : integer ): boolean;
+  function getSpecIsCode( specIndex : integer ): boolean;
   begin
-    getSpecIsdata := specs.data[specIndex].isdata;
+    getSpecIsCode := not specs.data[specIndex].isdata;
+  end;
+
+  procedure setSpecIsCode( specIndex : integer );
+  begin
+    specs.data[specIndex].isdata := false;
+  end;
+
+  function getSpecIsLocal( specIndex : integer ): boolean;
+  begin
+    getSpecIsLocal := specs.data[specIndex].isLocal;
+  end;
+
+  procedure setSpecIsLocal( specIndex : integer );
+  begin
+    specs.data[specIndex].isLocal := true;
+  end;
+
+  function getSpecIsGlobal( specIndex : integer ): boolean;
+  begin
+    getSpecIsGlobal := not specs.data[specIndex].isLocal;
+  end;
+
+  procedure setSpecIsGlobal( specIndex : integer );
+  begin
+    specs.data[specIndex].isLocal := false;
   end;
 
   function findSpecIndexByNameId( nameId : integer ): integer;
@@ -191,14 +234,15 @@ var
     findSpecIndexByP3Index := specIndex;
   end;
 
-  // run through the list of external specs, removing those that
-  // have not actually been used, and mapping the indexes of those
-  // that remain to a simple zero-based index
+  (* for each external spec                                             *)
+  (*   (1) remove the unused specs                                      *)
+  (*   (2) remap the indexes of used specs to a simple zero-based index *)
   procedure remapspecs();
   var
 	i, p3 : integer;
   begin
-    p3 := 0; // note, although Pass2 references are 1-based, our map is 0-based
+    (* NB: although Pass2 references are 1-based, our map is 0-based *)
+    p3 := 0;
     for i := 1 to getSpecCount() do
     begin
       if getSpecUsed(i) then
@@ -207,7 +251,8 @@ var
         p3 := p3 + 1;
       end;
     end;
-    // reassign the specs counter so we know how many we will plant
+    (* update the specs count *)
+    (* so we know how many we will plant *)
     setSpecTotal( p3 );
   end;
 

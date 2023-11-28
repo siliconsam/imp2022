@@ -18,7 +18,7 @@ cp $MODULE.ibj $MODULE.$NEWRUN.ibj
 ibj2assemble $MODULE.$NEWRUN.ibj $MODULE.$NEWRUN.assemble
 pass3elf $MODULE.$NEWRUN.ibj
 cp $MODULE.$NEWRUN.o $MODULE.o
-gcc -m32 -no-pie -o slimibj slimibj.o boolean.o symbols.o externals.o locals.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc -T /usr/local/bin/ld.i77.script
+gcc -m32 -no-pie -o slimibj slimibj.o symbols.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc
 
 OLDRUN=$2.00
 NEWRUN=$2.01
@@ -26,7 +26,7 @@ NEWRUN=$2.01
 ibj2assemble $MODULE.$NEWRUN.ibj $MODULE.$NEWRUN.assemble
 pass3elf $MODULE.$NEWRUN.ibj
 cp $MODULE.$NEWRUN.o $MODULE.o
-gcc -m32 -no-pie -o slimibj slimibj.o boolean.o symbols.o externals.o locals.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc -T /usr/local/bin/ld.i77.script
+gcc -m32 -no-pie -o slimibj slimibj.o symbols.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc
 
 OLDRUN=$2.01
 NEWRUN=$2.02
@@ -34,7 +34,7 @@ NEWRUN=$2.02
 ibj2assemble $MODULE.$NEWRUN.ibj $MODULE.$NEWRUN.assemble
 pass3elf $MODULE.$NEWRUN.ibj
 cp $MODULE.$NEWRUN.o $MODULE.o
-gcc -m32 -no-pie -o slimibj slimibj.o boolean.o symbols.o externals.o locals.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc -T /usr/local/bin/ld.i77.script
+gcc -m32 -no-pie -o slimibj slimibj.o symbols.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc
 
 OLDRUN=$2.02
 NEWRUN=$2.03
@@ -42,4 +42,4 @@ NEWRUN=$2.03
 ibj2assemble $MODULE.$NEWRUN.ibj $MODULE.$NEWRUN.assemble
 pass3elf $MODULE.$NEWRUN.ibj
 cp $MODULE.$NEWRUN.o $MODULE.o
-gcc -m32 -no-pie -o slimibj slimibj.o boolean.o symbols.o externals.o locals.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc -T /usr/local/bin/ld.i77.script
+gcc -m32 -no-pie -o slimibj slimibj.o symbols.o labels.o ibjconversion.o /usr/local/lib/libimp77.a -lm -lc

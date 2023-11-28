@@ -1,11 +1,11 @@
-// IMP Compiler for 80386 - COFF pass 3
+// IMP Compiler for 80386 - pass 3
+// COFF format object file generator
 
 // This reads an intermediate object file produced by the
-// second pass, performs the jump and stack allocation fixups,
-// and writes a standard COFF format object file.  It
-// reads the input file twice - once to collect all the jump
-// and stack information, and then a second time to actually
-// write the object file.
+// second pass, performs the jump and stack allocation fixups.
+// It reads the input file twice
+// - once to collect all the jump and stack information
+// - a second time to actually write the object file.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,43 +15,36 @@
 #include "pass3core.h"
 #include "pass3coff.h"
 
-// directives that we'd like to pass on to the linker...
-static char directive[] = "-defaultlib:LIBI77 ";
-#define SZDIRECTIVE		(sizeof(directive)-1)	// we skip the trailing zero
-
-#ifdef MSVC
-static char path_buffer[_MAX_PATH];	// working areas for file lookup
-#else
-static char path_buffer[256]; // working areas for file lookup
-#endif
-static int  path_index;       // location of the result in the string table
-
-// So that we can always find the trap table we define two
-// special symbols IFF this is a main program block
-#define TRAPSTART	"_imptrapbase"
-#define	TRAPEND		"_imptrapend"
-#define TRAPENDSZ   32
-
 #define MAINPROGNAME "_main"
+#define TRAPENTRYSIZE 32
+#define TRAPENDNAME   "trapend"
 
 // Pass 3 builds an in-store model of the application as a series
 // literal code blocks, data blocks, and so on.
 struct item {
-    int what;    // what this block describes
-    int address; // the address in the image
-    int info;    // type dependent extra information
-    int size;    // size this block occupies in the image (generally in bytes)
+    // what this block describes
+    int what;
+     // the address in the image
+    int address;
+    // type dependent extra information
+    int info;
+    // size this block occupies in the image (generally in bytes)
+    int size;
+    // symbol spec this item refers to
+    int spec;
 };
-
 #define MAXITEM 20000
 struct item m[MAXITEM];
 int nm = 0;
 
+#define LABELISUSED    1
+#define LABELISLOCAL   2
 // Jumps and calls all go to logical labels (a label ID is a 16 bit number)
-// We collect a simple database of labels and their corresponding code addresses
+// We create a simple database of labels and their corresponding code addresses
 struct label {
     int labelid;
     int address;
+    int flags;
 };
 #define MAXLABEL 5000
 struct label labels[MAXLABEL];
@@ -62,14 +55,24 @@ int nl = 1;
 // routine.  We use this table to match fixups with their corresponding
 // entry sequence, and we also use it to plant trap records
 struct stfix {
-    int id;     // arbitrary ID passed by Pass 2 (actually derived from P2's nominal code address)
-    int hint;   // pointer to the M record corresponding to the entry code
-    int events; // events trapped in this subroutine (a 16 bit bitmask)
-    int start;  // actual start address of subroutine
-    int trap;   // label of the event trap entry point (if events != 0)
-    int evfrom; // label of the start of the event protected area
-    int end;    // actual end address of subroutine
-    int namep;  // pointer to debug name of this routine
+     // arbitrary ID passed by Pass 2 (derived from P2's nominal code address)
+    int id;
+    // pointer to the M record corresponding to the entry code
+    int hint;
+    // events trapped in this subroutine (a 16 bit bitmask)
+    int events;
+    // actual start address of subroutine;
+    int start;
+    // actual end address of subroutine
+    int end;
+    // label of the event trap entry point (if events != 0)
+    int trap;
+    // label of the start of the event protected area
+    int evfrom;
+    // pointer to debug name of this routine
+    int namep;
+    // symbol table index of this routine
+    int symid;
 };
 #define MAXSTACK 500
 struct stfix stackfix[MAXSTACK];
@@ -82,70 +85,76 @@ int ns = 0;
 char named[MAXNAME];
 int namedp = 0;
 
-// Line number information is collected as the object file is
-// written so that we can write a linenumber segment for the
-// debugger
+// The share name dictionary is filled by section names zero terminated
+// - the M record points to the first character of the corresponding name.
+#define MAXSHNAME 500
+char shared[MAXSHNAME];
+int sharedp = 0;
+
+// Line number information is collected as the object file is output
+// so that we can write a linenumber section for the debugger
 struct lineno {
     int line;
     int offset;
 };
-
 #define MAXLINENO 4000
 struct lineno lines[MAXLINENO];
 int nlines = 0;
-int lastlinead = -1;	// the code address at the last line record assigned
 
-// Code relocations are interspersed by Pass2 in with the code, but
-// are output en-masse in the COFF file.  We count them here because
-// we need to know how many there are when constructing the COFF file.
-int nreloc = 0;
-
-// As we build the external symbol table we count them too...
-int nsymdefs = 0;
-
+#define SYMISUSED    1
+#define SYMISLOCAL   2
+#define SYMISDATA    4
+#define SYMISTRAP    8
 // Pass 2 passes on all symbols that are "spec'ed", and allocates an index
 // in sequence.  We check to see if they ever actually get used so that we
 // can prune the unwanted ones, and remap the indexes into the symbol table
 // accordingly...
 struct symspec {
-    int used;       // a boolean flag
-    int p3index;    // the actual symbol index
-    int isdata;     // is the symbol external data (=1) or code (=0)
+    // the actual symbol index
+    int p3index;
+    // flags
+    // bit 0 (1 => used,  0 => unused)
+    // bit 1 (1 => local, 0 => global)
+    // bit 2 (1 => data,  0 => code)
+    // bit 3 (1 => trap,  0 => normal)
+    int flags;
 };
-
 #define MAXSPECS 250
 struct symspec specs[MAXSPECS];
 int nspecs = 0;
 
-// Pass3 needs to know whether this is a main program or a
-// file of external routines, because main programs get a
-// special symbol defined for the trap table
-int mainprog = 0;
-
 //////// Database routines
+// the code address at the last line record assigned
+int lastlinead = -1;
 
 // report this line number as being at this address
 static void newlineno(int line, int addr)
 {
-    // is this line the same address as we already have?
-    if (addr == lastlinead)	// lines have advanced, but code didn't
+    // is this line at the same address we already have?
+    // i.e. have the line numbers advanced, but code didn't?
+    if (addr == lastlinead)
     {
-        lines[nlines-1].line = line;    // update current record
+        // update value of current line record
+        lines[nlines-1].line = line;
     }
     else
     {
-        if (nlines < MAXLINENO)		// only if there is room
+        // but only add line info if there is room
+        if (nlines == MAXLINENO)
         {
-            lines[nlines].line = line;
-            lines[nlines].offset = addr;
-            nlines += 1;
-            lastlinead = addr;
+            fprintf(stderr, "Program has too many lines\n");
+            fprintf(stderr, "Increase the value of MAXLINENO\n");
+            exit(1);
         }
+        lines[nlines].line = line;
+        lines[nlines].offset = addr;
+        nlines += 1;
+        lastlinead = addr;
     }
 }
 
 // return the index of the next item block
-static int newitem()
+static int newitem( int whatType )
 {
     if (nm == MAXITEM)
     {
@@ -153,6 +162,10 @@ static int newitem()
         fprintf(stderr, "Increase the value of MAXITEM\n");
         exit(1);
     }
+    m[nm].what = whatType;
+    m[nm].size = 0;
+    m[nm].spec = 0;
+
     nm = nm + 1;
     return (nm - 1);
 }
@@ -183,6 +196,23 @@ static int newstack()
     return (ns - 1);
 }
 
+static int newspec()
+{
+    // clear it and count it...
+    nspecs += 1;
+    if (nspecs == MAXSPECS)
+    {
+        fprintf(stderr, "Too many %%spec's\n");
+        fprintf(stderr, "Increase the value of MAXSPECS\n");
+        exit(1);
+    }
+    // assume this spec is an unused, global, function symbol
+    // So, clear all the bits of the spec flag
+    specs[nspecs].flags = 0; 
+
+    return nspecs;
+}
+
 // copy a new name into the name dictionary, and return
 // the index of the first character
 static int newname(char * name)
@@ -201,6 +231,40 @@ static int newname(char * name)
     return (namedp - (l + 1));
 }
 
+// copy a new name into the name dictionary, and return
+// the index of the first character
+static int newsharename(char * name)
+{
+    int l;
+
+    l = strlen(name);
+    if ((l + sharedp) >= MAXSHNAME)
+    {
+        fprintf(stderr, "Too many share names\n");
+        fprintf(stderr, "Increase the value of MAXSHNAME\n");
+        exit(1);
+    }
+    strcpy(&shared[sharedp], name);
+    sharedp += l + 1;
+    return (sharedp - (l + 1));
+}
+
+// Code relocations are interspersed by Pass2 in with the code, but
+// are output en-mass in the Object file.  We count them here because
+// we need to know how many there are when constructing the Object file.
+int nreloc = 0;
+
+// As we build the external symbol table we count them too...
+int nsymdefs = 0;
+
+// Pass3 needs to know whether this is a main program or a
+// file of external routines, because main programs get a
+// special symbol defined for the trap table
+int mainprogflag = 0;
+// We also need to determine if this is the trapend module
+// which will then contain the _imptrapend symbol
+int trapendflag = 0;
+
 // The first pass through the input file, where we collect all the
 // data we will need to map out the object code
 static void readpass1(char *inname)
@@ -209,6 +273,7 @@ static void readpass1(char *inname)
 
     int lineno;
     int type, length, current, ptr, id, value, cad;
+    int count;
     unsigned char buffer[256];
 
     input = fopen(inname, "r");
@@ -222,14 +287,13 @@ static void readpass1(char *inname)
     lineno = 0;
     cad = 0;
 
-    current = newitem();
-    m[current].what = IF_OBJ;
-    m[current].size = 0;
+    current = newitem(IF_OBJ);
     for(;;)
     {
         lineno++;
         readifrecord(input, &type, &length, buffer);
-        if (type < 0)   // end of file marker
+        // Are we at the end of file marker?
+        if (type < 0)
         {
             fclose(input);
             return;
@@ -237,124 +301,143 @@ static void readpass1(char *inname)
 
         switch(type)
         {
-        case IF_OBJ:    // plain object code
+        case IF_OBJ:
+            // plain object code
             // All of these are treated as "object code" for the first passs
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += length;
             cad += length;
             break;
 
-        case IF_DATA:   // dataseg offset word
+        case IF_DATA:
+            // data section offset word
             // All of these are treated as "object code" for the first passs
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_DATA at line %d\n",lineno);
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_CONST:  // const seg offset word
+        case IF_CONST:
+            // const section offset word
             // All of these are treated as "object code" for the first passs
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_CONST at line %d\n",lineno);
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_DISPLAY:    // display seg offset word
+        case IF_DISPLAY:
+            // display section offset word
             // All of these are treated as "object code" for the first passs
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_DISPLAY at line %d\n",lineno);
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_JUMP:   // unconditional jump to label
-            current = newitem();
-            m[current].what = IF_JUMP;
-            m[current].size = 5;                            // assume long to begin with
-            m[current].info = (buffer[1] << 8) | buffer[0]; // target label number
+        case IF_JUMP:
+            // unconditional jump to label
+            current = newitem(IF_JUMP);
+            // assume long to begin with (1 byte instruction, 4 bytes address)
+            m[current].size = 5;
+            // get the target label number
+            m[current].info = (buffer[1] << 8) | buffer[0];
             cad += 5;
             break;
 
-        case IF_JCOND:  // cond jump to label JE, JNE, JLE, JL, JGE, JG etc
-            current = newitem();
-            m[current].what = IF_JCOND;
-            m[current].size = 6;                            // assume long to begin with
+        case IF_JCOND:
+            // cond jump to label JE, JNE, JLE, JL, JGE, JG etc
+            current = newitem(IF_JCOND);
+            // assume long to begin with (2 bytes instruction, 4 bytes address)
+            m[current].size = 6;
             // condition code is buffer[0] - not needed on this first pass
-            m[current].info = (buffer[2] << 8) | buffer[1]; // target label number
+            // get the target label number
+            m[current].info = (buffer[2] << 8) | buffer[1];
             cad += 6;
             break;
 
-        case IF_CALL:   // call a label
-            current = newitem();
-            m[current].what = IF_CALL;
-            m[current].size = 5;                            // assume long to begin with
-            m[current].info = (buffer[1] << 8) | buffer[0]; // target label number
+        case IF_CALL:
+            // call a label
+            current = newitem(IF_CALL);
+            // assume long to begin with (1 byte instruction, 4 bytes address)
+            m[current].size = 5;
+            // get the target label number
+            m[current].info = (buffer[1] << 8) | buffer[0];
             cad += 5;
             break;
 
-        case IF_LABEL:  // define a label
-            current = newitem();
-            m[current].what = IF_LABEL;
-            m[current].size = 0;                            // labels occupy no space
-            m[current].info = (buffer[1] << 8) | buffer[0]; // label number
+        case IF_LABEL:
+            // define a label
+            current = newitem(IF_LABEL);
+            // labels occupy no space
+            m[current].size = 0;
+            // get the label number
+            m[current].info = (buffer[1] << 8) | buffer[0];
             break;
 
-        case IF_FIXUP:  // define location for stack fixup instruction
-            current = newitem();
-            m[current].what = IF_FIXUP;
-            m[current].size = 4;    // space will be an ENTER instruction (C8, nnnn, ll)
-            m[current].info = 0;    // amount to subtract from the stack will be filled later
+        case IF_FIXUP:
+            // define location for stack fixup instruction
+            current = newitem(IF_FIXUP);
+            // space will be an ENTER instruction (C8, nnnn, ll)
+            m[current].size = 4;
+            // amount to subtract from the stack will be filled later
+            m[current].info = 0;
             cad += 4;
             ptr = newstack();
-            stackfix[ptr].id = (buffer[1] << 8) | buffer[0]; // id number for fixup
-            stackfix[ptr].hint = current; // point to this code item
-            stackfix[ptr].events = 0;     // assume no events trapped
-            stackfix[ptr].trap = 0;       // no label
-            buffer[length] = 0;           // make sure we zero terminate the proc name
-            stackfix[ptr].namep = newname((char *)&buffer[3]); // debug name
+            // get the id number for fixup
+            stackfix[ptr].id = (buffer[1] << 8) | buffer[0];
+            // point to this code item
+            stackfix[ptr].hint = current;
+            // assume no events are trapped
+            stackfix[ptr].events = 0;
+            // no known label yet
+            stackfix[ptr].trap = 0;
+            // make sure we zero terminate the proc name
+            buffer[length] = 0;
+            // remember the debug name of this routine
+            stackfix[ptr].namep = newname((char *)&buffer[3]);
             break;
 
-        case IF_SETFIX:     // stack fixup <location> <amount> <eventmask> <event entry>
-            id = (buffer[1] << 8) | buffer[0] ; // id number for fixup
+        case IF_SETFIX:
+            // stack fixup <location> <amount> <eventmask> <event entry>
+             // get the id number for this fixup
+            id = (buffer[1] << 8) | buffer[0];
+            // search for the fixup
             for (ptr = 0; ptr < ns; ptr++)
             {
-                if (stackfix[ptr].id == id)     // found it
+                // have we found it?
+                if (stackfix[ptr].id == id)
                 {
-                    id = stackfix[ptr].hint;                // point to M record
-                    value = (buffer[3] << 8) | buffer[2] ;  // amount to subtract
-                    // compiler passes value as a 16 bit negative number, but we're going
-                    // to plant an ENTER instruction, so we make it positive...
+                    // found, so point to M record
+                    id = stackfix[ptr].hint;
+                    // get the amount to subtract
+                    value = (buffer[3] << 8) | buffer[2];
+                    // compiler passes value as a 16 bit negative number,
+                    // but we're going to plant an ENTER instruction,
+                    // so we make it positive...
                     value = - value;
                     value &= 0xffff;
                     m[id].info = value;
@@ -369,38 +452,39 @@ static void readpass1(char *inname)
                 fprintf(stderr, "Stack fixup for undefined ID?\n");
             break;
 
-        case IF_REQEXT: // external name spec
-            // clear it and count it...
-            nspecs += 1;
-            if (nspecs == MAXSPECS)
-            {
-                fprintf(stderr, "Too many %%spec's\n");
-                fprintf(stderr, "Increase the value of MAXSPECS\n");
-                exit(1);
-            }
-            specs[nspecs].used = 0;
-            specs[nspecs].isdata = 0;   // assume this is an external code name
-            current = newitem();
-            m[current].what = IF_REQEXT;
-            m[current].size = 0;    // definitions/specs occupy no space
-            buffer[length] = 0;     // make the name null terminated
+        case IF_REQEXT:
+            // external name spec
+            current = newitem(IF_REQEXT);
+            // note the spec
+            m[current].spec = newspec();
+
+            // definitions/specs occupy no space
+            m[current].size = 0;
+            // make the name null terminated
+            buffer[length] = 0;
             m[current].info = newname((char *)buffer);
             break;
 
-        case IF_REFLABEL:   // label reference as relative address with optional offset
+        case IF_REFLABEL:
+            // label reference as relative address with optional offset
             // add it to list and update current address pointer...
-            current = newitem();
-            m[current].what = IF_REFLABEL;
-            m[current].size = WORDSIZE;                     // label reference == relative address
-            m[current].info = (buffer[1] << 8) | buffer[0]; // label number
+            current = newitem(IF_REFLABEL);
+            // label reference == relative address, so WORDSIZE
+            m[current].size = WORDSIZE;
+             // get the label number
+            m[current].info = (buffer[1] << 8) | buffer[0];
             // buffer[3],buffer[2] offset is ignored in this pass
             cad += WORDSIZE;
             break;
 
-        case IF_REFEXT:     // external name relative offset code word
-            // update our "used" flag
+        case IF_REFEXT:
+            // external name relative offset code word
+            // which "spec" are we dealing with
             id = (buffer[1]<<8)|buffer[0];
-            specs[id].used = 1;
+
+            // update our "used" flag
+            specs[id].flags = specs[id].flags | SYMISUSED;
+
             // and fall through to treat as a general code word
             // All of these are treated as "object code" for the first pass
             if (length != WORDSIZE)
@@ -408,126 +492,160 @@ static void readpass1(char *inname)
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
+            // remember the associateed symbol spec
+            m[current].spec = id;
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_BSS:    // BSS segment offset code word
+        case IF_BSS:
+            // BSS section offset code word
             // All of these are treated as "object code" for the first pass
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_BSS at line %d\n",lineno);
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_COTWORD:    // Constant table word
+        case IF_COTWORD:
+            // Constant table word
             if (m[current].what != IF_COTWORD)
             {
-                current = newitem();
-                m[current].what = IF_COTWORD;
-                m[current].size = 0;
+                current = newitem(IF_COTWORD);
             }
-            m[current].size += 2;   // NOTE - these are actually halfwords
+            // NOTE - these are actually halfwords (=2 bytes)
+            m[current].size += 2;
             break;
 
-        case IF_DATWORD:    // Data segment word
+        case IF_DATWORD:
+            // Data section word
             if (m[current].what != IF_DATWORD)
             {
-                current = newitem();
-                m[current].what = IF_DATWORD;
+                current = newitem(IF_DATWORD);
                 m[current].size = 0;
             }
-            m[current].size += 2;   // NOTE - these are actually halfwords
+            // determine how many halfwords (= number of 2 byte chunks)
+            // Ensure count is zero
+            count = 0;
+            if (length == 2)
+            {
+                // old format of IF_DATWORD
+                count = 1;
+            }
+            else if (length == 4)
+            {
+                // new format of IF_DATWORD
+                count = buffer[2] | (buffer[3] << 8);
+            }
+//fprintf(stderr, "READPASS1: DATWORD has length=%d, count=%d\n", length,count);
+
+            // determine how many bytes required
+            m[current].size += (2*count);
             break;
 
-        case IF_SWTWORD:    // switch table entry - actually a label ID
+        case IF_SWTWORD:
+            // switch table entry - actually a label ID
             if (m[current].what != IF_SWTWORD)
             {
-                current = newitem();
-                m[current].what = IF_SWTWORD;
-                m[current].size = 0;
+                current = newitem(IF_SWTWORD);
             }
-            m[current].size += 2;   // NOTE - these are actually halfwords
+            // NOTE - these are actually halfwords (=2 bytes)
+            m[current].size += 2;
             break;
 
-        case IF_SOURCE: // name of the source file
+        case IF_SOURCE:
+            // name of the source file
             // do nothing - not even advance the "current"
             break;
 
-        case IF_DEFEXTCODE: // define a code label that is external
-            current = newitem();
-            m[current].what = IF_DEFEXTCODE;
-            m[current].size = 0;    // definitions/specs occupy no space
-            buffer[length] = 0;     // make the name null terminated
-            m[current].info = newname((char *)buffer);
-            nsymdefs += 1;
+        case IF_DEFEXTCODE:
+            // external name spec
+            // make the name null terminated
+            buffer[length] = 0;
             // this is a slightly cheesy way of finding if this is a main program
             if (strcmp((char *)buffer, MAINPROGNAME ) == 0)
-                mainprog = 1;	// This is a main program
-            break;
-
-        case IF_DEFEXTDATA: // define a data label that is external
-            current = newitem();
-            m[current].what = IF_DEFEXTDATA;
-            m[current].size = 0;    // definitions/specs occupy no space
-            buffer[length] = 0;     // make the name null terminated
+            {
+                // Yes, this is the main program
+                // it is also the location of the trapbase symbol definition
+                mainprogflag = 1;
+                // it is also the location of the trapend symbol definition
+                trapendflag = 1;
+            }
+            // define a code label that is external
+            current = newitem(IF_DEFEXTCODE);
             m[current].info = newname((char *)buffer);
             nsymdefs += 1;
+            // definitions/specs occupy no space
+            m[current].spec = newspec();
             break;
 
-        case IF_SWT:    // SWITCH table segment offset code word
+        case IF_DEFEXTDATA:
+            // external name spec
+            // make the name null terminated
+            buffer[length] = 0;
+            // define a data label that is external
+            current = newitem(IF_DEFEXTDATA);
+            m[current].info = newname((char *)buffer);
+            nsymdefs += 1;
+            // definitions/specs occupy no space
+            m[current].spec = newspec();
+            // flag this spec as an external data symbol
+            specs[m[current].spec].flags = specs[m[current].spec].flags | SYMISDATA;
+            break;
+
+        case IF_SWT:
+            // SWITCH table section offset code word
             // All of these are treated as "object code" for the first pass
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_SWT at line %d\n",lineno);
             nreloc += 1;
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
             break;
 
-        case IF_LINE:   // line number info for the debugger
+        case IF_LINE:
+            // line number info for the debugger
             // note we will recalculate this information on the second pass when
             // jump optimisation will have changed the code addresses, but in the
             // meantime we need to know how many records we will have for the line
             // number section of the object file.
-            value = (buffer[1] << 8) | buffer[0] ;   // get the source line number
+
+            // get the source line number
+            value = (buffer[1] << 8) | buffer[0];
             newlineno(value, cad);
             break;
 
-        case IF_ABSEXT: // external name relative offset code word
-            // update our "used" flag
-            id = (buffer[1]<<8) | buffer[0] ;
-            specs[id].used = 1;
-            specs[id].isdata = 1;   // Hack to say this is a data label
+        case IF_ABSEXT:
+            // external name relative offset code word
+            // Get the specs sequence number
+            id = (buffer[1]<<8) | buffer[0];
+            // clear all flag bits for this symbol
+            // and, flag this spec as a used global data symbol
+            specs[id].flags = SYMISUSED | SYMISDATA;
+
             if (length != WORDSIZE)
                 fprintf(stderr, "Oops - length screwup for IF_ABSEXT at line %d\n",lineno);
             nreloc += 1;
             // All of these are treated as "object code" for the first passs
             if (m[current].what != IF_OBJ)
             {
-                current = newitem();
-                m[current].what = IF_OBJ;
-                m[current].size = 0;
+                current = newitem(IF_OBJ);
             }
+            m[current].spec = id;
             // we don't bother to remember the code, just how big it is..
             m[current].size += WORDSIZE;
             cad += WORDSIZE;
@@ -555,30 +673,217 @@ static int findlabel(int id)
 }
 
 // Reset the label list and then do a pass through the data
-// to set up label records.
+// to reset label records.
+// We also want to check if the label is actually used.
 static void initlabels()
 {
     int cad, i, type, ptr, id;
 
     cad = 0;
     nl = 1;
+    // loop over the item records
     for (i = 0; i < nm; i++)
     {
         type = m[i].what;
         m[i].address = cad;
-        if (type == IF_LABEL)
+
+        // Perform explicit action for each IF_XXX
+        // So we can tweak actions in case of future enhancements
+        // NB. There may be forward references to a label.
+        // In that case we pre-define the label and can tag it as used.
+        // Backward label references just cause the label to be tagged as used.
+        switch(type)
         {
-            id = m[i].info;
-            ptr = findlabel(id);    // Pass 2 redefines labels sometimes
-            if (ptr == 0)
-                ptr = newlabel();
-            labels[ptr].labelid = id;
-            labels[ptr].address = cad;
-        }
-        else
-        {
-            if ((type != IF_COTWORD) && (type != IF_DATWORD) && (type != IF_SWTWORD))
+            case IF_OBJ:
+                // plain object code
                 cad += m[i].size;
+                break;
+
+            case IF_DATA:
+                // data section offset word
+                cad += m[i].size;
+                break;
+
+            case IF_CONST:
+                // const section offset word
+                cad += m[i].size;
+                break;
+
+            case IF_DISPLAY:
+                // display section offset word
+                cad += m[i].size;
+                break;
+
+            case IF_JUMP:
+                // unconditional jump to label
+                cad += m[i].size;
+                // tag referenced label as used
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
+                if (ptr == 0)
+                {
+                    // Ah! We have a forward label reference
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].flags = labels[ptr].flags | LABELISUSED;
+                break;
+
+            case IF_JCOND:
+                // cond jump to label JE, JNE, JLE, JL, JGE, JG etc
+                cad += m[i].size;
+                // tag referenced label as used
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
+                if (ptr == 0)
+                {
+                    // Ah! We have a forward label reference
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].flags = labels[ptr].flags | LABELISUSED;
+                break;
+
+            case IF_CALL:
+                // call a label
+                cad += m[i].size;
+                // tag referenced label as used
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
+                if (ptr == 0)
+                {
+                    // Ah! We have a forward label reference
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].flags = labels[ptr].flags | LABELISUSED;
+                break;
+
+            case IF_LABEL:
+                // define a label
+                id = m[i].info;
+                // DANGER! Pass 2 redefines labels sometimes
+                ptr = findlabel(id);
+                if (ptr == 0)
+                {
+                    // Ah! We have an un-referenced label
+                    // So tag as unused and let later records
+                    // determine if this label is referenced
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].labelid = id;
+                labels[ptr].address = cad;
+                break;
+
+            case IF_FIXUP:
+                // define location for stack fixup instruction
+                cad += m[i].size;
+                break;
+
+            case IF_SETFIX:
+                // stack fixup <location> <amount> <eventmask> <event entry>
+                cad += m[i].size;
+                break;
+
+            case IF_REQEXT:
+                // external name spec
+                cad += m[i].size;
+                break;
+
+            case IF_REFLABEL:
+                // label reference as relative address with optional offset
+                cad += m[i].size;
+                // tag referenced label as used
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
+                if (ptr == 0)
+                {
+                    // Ah! We have a forward label reference
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].flags = labels[ptr].flags | LABELISUSED;
+                break;
+
+            case IF_REFEXT:
+                // external name relative offset code word
+                cad += m[i].size;
+                break;
+
+            case IF_BSS:
+                // BSS section offset code word
+                cad += m[i].size;
+                break;
+
+            case IF_COTWORD:
+                // Constant table word
+                break;
+
+            case IF_DATWORD:
+                // Data section word (repeated)
+                break;
+
+            case IF_SWTWORD:
+                // switch table entry - actually a label ID
+                // tag referenced label as used
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
+                if (ptr == 0)
+                {
+                    // Ah! We have a forward label reference
+                    ptr = newlabel();
+                    labels[ptr].flags = 0;
+                }
+                labels[ptr].flags = labels[ptr].flags | LABELISUSED;
+                break;
+
+            case IF_SOURCE:
+                // name of the source file
+                cad += m[i].size;
+                break;
+
+            case IF_DEFEXTCODE:
+                // external name spec
+                cad += m[i].size;
+                break;
+
+            case IF_DEFEXTDATA:
+                // external name spec
+                cad += m[i].size;
+                break;
+
+            case IF_SWT:
+                // SWITCH table section offset code word
+                cad += m[i].size;
+                // This is a jump into the combined switch table entries.
+                // The switch table head should be defined else where
+                // This should generate a jump into the switch table
+                // as a calculated offset from the switch table start
+                break;
+
+            case IF_LINE:
+                // line number info for the debugger
+                cad += m[i].size;
+                break;
+
+            case IF_ABSEXT:
+                // external name relative offset code word
+                cad += m[i].size;
+                break;
+
+            default:
+                break;
         }
     }
 }
@@ -586,9 +891,9 @@ static void initlabels()
 // Simple routine that tries to "improve" the jumps.
 // It returns "true" if it found an improvement.
 // Unfortunately we need to iterate because every
-// improvement moves all the downstream labels (which
-// may allow further improvement), so this routine
-// is called more than once.
+// improvement moves all the downstream labels
+// (which may allow further improvement).
+// So this routine is called more than once.
 static int improvejumpsizes()
 {
     int i, type, ptr, distance, success;
@@ -599,15 +904,21 @@ static int improvejumpsizes()
         type = m[i].what;
         if ((type == IF_JUMP) || (type == IF_JCOND))
         {
-            if (m[i].size > 2) // not already improved!
+            // jump size not already improved?!?!
+            if (m[i].size > 2)
             {
-                ptr = m[i].info;      // pick up label id
-                ptr = findlabel(ptr); // get table index
+                // pick up label id
+                ptr = m[i].info;
+                // get table index
+                ptr = findlabel(ptr);
                 distance = labels[ptr].address - (m[i].address + 2);
-                if ((-127 < distance) && (distance < 127))	// could this be short?
+              	// could this be converted to a short byte jump?
+                if ((-127 < distance) && (distance < 127))
                 {
-                    m[i].size = 2; //make it so
-                    success = 1;   //and tell the world we've done good
+                    // Yes! so JFDI (= make it so)
+                    m[i].size = 2;
+                    //and tell the world we've done good
+                    success = 1;
                 }
             }
         }
@@ -615,117 +926,184 @@ static int improvejumpsizes()
     return success;
 }
 
-// cond jump to label JE, JNE, JG, JGE, JL, JLE, JA, JAE, JB, JBE
-static unsigned char jcondop[10] = {
-    0x74, 0x75, 0x7F, 0x7D, 0x7C, 0x7E, 0x77, 0x73, 0x72, 0x76,
-};
+// run through the list of external specs, removing those that
+// have not actually been used, and mapping the indexes of those
+// that remain to a simple zero-based index
+void remapspecs()
+{
+	int i, index;
 
-static unsigned char jfalseop[10] = {
-    0x75, 0x74, 0x7E, 0x7C, 0x7D, 0x7F, 0x76, 0x72, 0x73, 0x77,
-};
+    // note, although Pass2 references are 1-based, our map is 0-based
+    index = 0;
+    for (i = 1; i <= nspecs; i++)
+    {
+        // default the value of the p3Index
+        specs[i].p3index = 0;
+        // However, check if this "spec" is used
+        if ((specs[i].flags & SYMISUSED) != 0)
+        {
+            specs[i].p3index = index;
+            index += 1;
+        }
+    }
+    // reassign the specs counter so we know how many we will plant
+    nspecs = index;
+}
 
-// Global counter used to plant linker segment size definitions
-static int codeseg = 0;
-static int dataseg = 0;
-static int constseg = 0;
-static int bssseg = 0;
-static int displayseg = 32;
-static int swtabseg = 0;
-static int trapseg = 0;
+// Remember the sizes of various sections
+// If another section type is required then
+// define another "size" variable AND
+// Global counter used to plant linker section size definitions
 
-// run through the database adding up the various segment sizes
+// also add code to determine the "size" value
+// e.g. section ".text.get_pc" for use in shareable libraries
+
+// the CODE section
+static int codesize = 0;
+
+// the CONST section
+static int constsize = 0;
+
+// the DATA section
+static int datasize = 0;
+
+// the BSS section
+static int bsssize = 0;
+
+// the SWTAB section (the switch table)
+static int swtabsize = 0;
+
+// the TRAP section
+static int trapsize = 0;
+
+// the TRAPEND section
+// this is only present if this is a main program
+static int trapendsize = 0;
+
+// run through the database adding up the various section sizes
 void computesizes()
 {
     int i, type, size;
 
     for (i = 0; i < nm; i++)
     {
+        // what .ibj directive is this
         type = m[i].what;
+        // importantly, what size does it represent;
         size = m[i].size;
+
+        // now to update the various "size" values
+        // Remember, if a new "size" type is added
+        // This is where it is evaluated
         switch(type) {
-        case IF_OBJ:   // plain object code
-            codeseg += size;
+        case IF_OBJ:
+            // plain object code
+            codesize += size;
             break;
 
-        case IF_DATA:  // dataseg offset word
-            codeseg += size;
+        case IF_DATA:
+            // data section offset word
+            codesize += size;
             break;
 
-        case IF_CONST: // const seg offset word
-            codeseg += size;
+        case IF_CONST:
+            // const section offset word
+            codesize += size;
             break;
 
-        case IF_DISPLAY:    // display offset word
-            codeseg += size;
+        case IF_DISPLAY:
+            // display offset word
+            codesize += size;
             break;
 
-        case IF_JUMP:   // unconditional jump to label
-            codeseg += size;
+        case IF_JUMP:
+            // unconditional jump to label
+            codesize += size;
             break;
 
-        case IF_JCOND:  // cond jump to label JE, JNE, JLE, JL, JGE, JG
-            codeseg += size;
+        case IF_JCOND:
+            // cond jump to label JE, JNE, JLE, JL, JGE, JG
+            codesize += size;
             break;
 
-        case IF_CALL:   // call a label
-            codeseg += size;
+        case IF_CALL:
+            // call a label
+            codesize += size;
             break;
 
-        case IF_LABEL:  // directive doesn't consume space
+        case IF_LABEL:
+            // this directive doesn't consume space
             break;
 
-        case IF_FIXUP:  // define location for stack fixup instruction
-            codeseg += size;
+        case IF_FIXUP:
+            // define location for stack fixup instruction
+            codesize += size;
             break;
 
-        case IF_SETFIX: // directive doesn't consume space
+        case IF_SETFIX:
+            // this directive doesn't consume space
             break;
 
-        case IF_REQEXT: // directive doesn't consume space
+        case IF_REQEXT:
+            // this directive doesn't consume space
             break;
 
-        case IF_REFLABEL:   // label reference as a relative address with optional offset
-            codeseg += size;
+        case IF_REFLABEL:
+            // label reference as a relative address with optional offset
+            codesize += size;
             break;
 
-        case IF_REFEXT: // external name relative offset code word
-            codeseg += size;
+        case IF_REFEXT:
+            // external name relative offset code word
+            codesize += size;
             break;
 
-        case IF_BSS:    // BSS seg offset word
-            codeseg += size;
+        case IF_BSS:
+            // BSS section offset word
+            codesize += size;
             break;
 
-        case IF_COTWORD:    // Constant table word
-            constseg += size;
+        case IF_COTWORD:
+            // Constant table word
+            constsize += size;
             break;
 
-        case IF_DATWORD:    // Data segment word
-            dataseg += size;
+        case IF_DATWORD:
+            // Data section word
+            datasize += size;
             break;
 
-        case IF_SWTWORD:    // switch table entry - actually a label ID
-            swtabseg += (size*2);   // so "size" is 16 bit words, but the entries will be 32 bits
+        case IF_SWTWORD:
+            // switch table entry - actually a label ID
+            // so "size" is 16 bit words (= label id),
+            // but the entries will be 32 bits
+            swtabsize += (size*2);
             break;
 
-        case IF_SOURCE: // directive doesn't consume space
+        case IF_SOURCE:
+            // directive doesn't consume space
             break;
 
-        case IF_DEFEXTCODE: // directive doesn't consume space
+        case IF_DEFEXTCODE:
+            // directive doesn't consume space
             break;
 
-        case IF_DEFEXTDATA: // directive doesn't consume space
+        case IF_DEFEXTDATA:
+            // directive doesn't consume space
             break;
 
-        case IF_SWT:        // SWITCH table segment offset code word
-            codeseg += size;
+        case IF_SWT:
+            // SWITCH table section offset code word
+            codesize += size;
             break;
 
-        case IF_LINE:       // directive doesn't consume space
+        case IF_LINE:
+            // directive doesn't consume space
             break;
 
-        case IF_ABSEXT:     // external name relative offset code word
-            codeseg += size;
+        case IF_ABSEXT:
+            // external name relative offset code word
+            codesize += size;
             break;
 
         default:
@@ -735,10 +1113,14 @@ void computesizes()
         }
     }
 
-    // finally, the trap segment will contain one record for
+    // finally, the trap section will contain one record for
     // every procedure we've found
-    trapseg = ns * 32;
+    trapsize = ns * TRAPENTRYSIZE;
 }
+
+// Code for creating COFF object data
+// The object data depends on the data-structure formed from the .ibj file
+// and the calculated "size" data
 
 // set up the data structures for the COFF file
 // we are going to have one file header, then five section headers
@@ -752,22 +1134,22 @@ void computesizes()
 struct cofffilehdr	filehead;
 
 // Internal coff sections, according to the file writer
-#define DIRECTSECTION   1
-#define CODESECTION     2
-#define CONSTSECTION    3
-#define DATASECTION     4
-#define SWTABSECTION    5
-#define TRAPSECTION     6
-#define TRAPENDSECTION  7
+#define DIRECTIVE_SECTION   1
+#define CODE_SECTION        2
+#define CONST_SECTION       3
+#define DATA_SECTION        4
+#define SWTAB_SECTION       5
+#define TRAP_SECTION        6
+#define TRAPEND_SECTION     7
 
 // and three pseudo sections for our file write that correspond to the
 // three parts of the relocation table (code, switch table, and trap table)
-#define CODERELSECTION	8
-#define SWTABRELSECTION	9
-#define	TRAPRELSECTION	10
+#define CODEREL_SECTION     8
+#define SWTABREL_SECTION    9
+#define	TRAPREL_SECTION    10
 
 // then the pseudo section that is the line number table
-#define LINENOSECTION	11
+#define LINENO_SECTION     11
 
 // External coff sections, as they actually appear in the file.  We need
 // this because we tidily remove empty sections, so the later ones get
@@ -788,55 +1170,116 @@ struct coffscnhdr   swtabhead;
 struct coffscnhdr   traphead;
 struct coffscnhdr   trapendhead;
 
-int codereloffset;  // file offset of the relocation records for the code segment
-int swtabreloffset; // file offset of the relocation records for the switch table
-int trapreloffset;  // file offset of the relocation records for the trap table
-int lineoffset;     // file offset for the code source line table
-int symtaboffset;   // file offset for the symbol table
-int strtaboffset;   // file offset for the string table
+// file offset of the relocation records for the code segment
+int codereloffset;
+// file offset of the relocation records for the switch table
+int swtabreloffset;
+// file offset of the relocation records for the trap table
+int trapreloffset;
+// file offset for the code source line table
+int lineoffset;
+// file offset for the symbol table
+int symtaboffset;
+// file offset for the string table
+int strtaboffset;
 int ncoffsections;
 
-void initcoff(FILE * output)
+// cond jump to label JE, JNE, JG, JGE, JL, JLE, JA, JAE, JB, JBE
+static unsigned char jcondop[10] = {
+    0x74, 0x75, 0x7F, 0x7D, 0x7C, 0x7E, 0x77, 0x73, 0x72, 0x76,
+};
+
+static unsigned char jfalseop[10] = {
+    0x75, 0x74, 0x7E, 0x7C, 0x7D, 0x7F, 0x76, 0x72, 0x73, 0x77,
+};
+
+// directives that we'd like to pass on to the linker...
+static char directive[] = "-defaultlib:LIBI77 ";
+// we skip the trailing zero
+#define SZDIRECTIVE		(sizeof(directive)-1)
+
+// N.B. path_buffer is initialised with the input filename
+// The input filename MUST include the .ibj file extension
+// This char array will then be tweaked to change .ibj to .o
+#ifdef MSVC
+// working areas for file lookup
+static char path_buffer[_MAX_PATH];
+#else
+// alternative working areas for file lookup
+static char path_buffer[256];
+#endif
+
+// location of the result in the string table
+static int  path_index;
+
+// intsyms == count of internal symbols defined
+// This includes local symbols and section symbols
+int intsyms;
+// extsyms == count of external symbols defined
+// This includes the global symbols (defined and referenced)
+int extsyms;
+// This is the count of internal + external defined symbols
+// syms = intsyms + extsyms
+// local variable used to avoid repeated addition calculation
+int syms;
+
+// So that we can always find the trap table we define two
+// special symbols IFF this is a main program block
+#define TRAPSTART	"_imptrapbase"
+#define	TRAPEND		"_imptrapend"
+#define TRAPENDSZ   32
+
+void initobjectfile(FILE * output)
 {
     int dataoffset, i, trapendseg, filesyms;
 
-    if (mainprog != 0)
+    if (mainprogflag != 0)
     {
-        nsymdefs = nsymdefs + 2;    // because we will also define the trap table base and end
-        trapendseg = TRAPENDSZ;     // segment will be 32 bytes long (same size as a single trap entry
+        // because we will also define the trap table base and end symbols
+        nsymdefs = nsymdefs + 2;
+        // segment will be 32 bytes long (same size as a single trap entry
+        trapendseg = TRAPENDSZ;
     }
     else
         trapendseg = 0;
 
-    ncoffsections = 1;  // how many sections we'll need (always one for directive)
-    if (codeseg  != 0) ncoffsections += 1;
-    if (constseg != 0) ncoffsections += 1;
-    if (dataseg  != 0) ncoffsections += 1;
-    if (swtabseg != 0) ncoffsections += 1;
-    if (trapseg  != 0) ncoffsections += 1;
-    if (mainprog != 0) ncoffsections += 1;  // for the dummy trap table end section
+    // how many sections we'll need (always one for directive)
+    ncoffsections = 1;
+    if (codesize  != 0) ncoffsections += 1;
+    if (constsize != 0) ncoffsections += 1;
+    if (datasize  != 0) ncoffsections += 1;
+    if (swtabsize != 0) ncoffsections += 1;
+    if (trapsize  != 0) ncoffsections += 1;
+    // for the dummy trap table end section
+    if (trapendflag != 0) ncoffsections += 1;
 
-    dataoffset     = SZFILEHDR      + ncoffsections * SZSECHDR; // data starts after all the headers
-    codereloffset  = dataoffset     + SZDIRECTIVE + codeseg + dataseg + constseg + swtabseg + trapseg + trapendseg;
+    // use a little magic to know in advance how many records the .file symbol takes
+    filesyms       = (strlen(path_buffer) + 36)/18;
+
+    intsyms = (ncoffsections*2) + filesyms + 1;
+    extsyms = nsymdefs + nspecs;
+
+    // data starts after all the headers
+    dataoffset     = SZFILEHDR      + ncoffsections * SZSECHDR;
+    codereloffset  = dataoffset     + SZDIRECTIVE + codesize + datasize + constsize + swtabsize + trapsize + trapendseg;
     swtabreloffset = codereloffset  + nreloc * SZRELOC;
-    trapreloffset  = swtabreloffset + (swtabseg / 4) * SZRELOC;
-    lineoffset     = trapreloffset  + (trapseg / 8) * SZRELOC;
+    trapreloffset  = swtabreloffset + (swtabsize / 4) * SZRELOC;
+    lineoffset     = trapreloffset  + (trapsize / 8) * SZRELOC;
     symtaboffset   = lineoffset     + nlines * SZLINENO;
-    filesyms       = (strlen(path_buffer) + 36)/18; // little magic to know in advance how many records the .file symbol takes
     strtaboffset   = symtaboffset   + (nsymdefs + nspecs + (ncoffsections*2) + filesyms + 1) * SZSYMENT;
 
     setfile(output, dataoffset);
-    setsize(DIRECTSECTION,  SZDIRECTIVE);
-    setsize(CODESECTION,    codeseg);
-    setsize(CONSTSECTION,   constseg);
-    setsize(DATASECTION,    dataseg);
-    setsize(SWTABSECTION,   swtabseg);
-    setsize(TRAPSECTION,    trapseg);
-    setsize(TRAPENDSECTION, trapendseg);
-    setsize(CODERELSECTION, nreloc * SZRELOC);
-    setsize(SWTABRELSECTION,(swtabseg / 4) * SZRELOC);
-    setsize(TRAPRELSECTION, (trapseg / 8) * SZRELOC);
-    setsize(LINENOSECTION,  nlines * SZLINENO);
+    setsize(DIRECTIVE_SECTION, SZDIRECTIVE);
+    setsize(CODE_SECTION,      codesize);
+    setsize(CONST_SECTION,     constsize);
+    setsize(DATA_SECTION,      datasize);
+    setsize(SWTAB_SECTION,     swtabsize);
+    setsize(TRAP_SECTION,      trapsize);
+    setsize(TRAPEND_SECTION,   trapendseg);
+    setsize(CODEREL_SECTION,   nreloc * SZRELOC);
+    setsize(SWTABREL_SECTION,  (swtabsize / 4) * SZRELOC);
+    setsize(TRAPREL_SECTION,   (trapsize / 8) * SZRELOC);
+    setsize(LINENO_SECTION,    nlines * SZLINENO);
 
     // now we manufacture each of the section headers
     strcpy(directhead.s_name, ".drectve");
@@ -848,13 +1291,14 @@ void initcoff(FILE * output)
     directhead.s_lnnoptr = 0;
     directhead.s_nreloc  = 0;
     directhead.s_nlnno   = 0;
-    directhead.s_flags   = 0x00100a00;  // as used by MS C
+    // as used by MS C
+    directhead.s_flags   = 0x00100a00;
     dataoffset += SZDIRECTIVE;
 
     strcpy(codehead.s_name, ".text");
     codehead.s_paddr    = 0;
     codehead.s_vaddr    = 0;
-    codehead.s_size	    = codeseg;
+    codehead.s_size	    = codesize;
     codehead.s_scnptr   = dataoffset;
     if (nreloc == 0)
         codehead.s_relptr = 0;
@@ -863,44 +1307,49 @@ void initcoff(FILE * output)
     codehead.s_lnnoptr  = lineoffset;
     codehead.s_nreloc   = nreloc;
     codehead.s_nlnno    = nlines;
-    codehead.s_flags    = 0x60500020;   // readable executable 16 byte aligned code
-    dataoffset += codeseg;
+    // readable executable 16 byte aligned code
+    codehead.s_flags    = 0x60500020;
+    dataoffset += codesize;
 
     strcpy(consthead.s_name, ".rdata");
     consthead.s_paddr   = 0;
     consthead.s_vaddr   = 0;
-    consthead.s_size    = constseg;
+    consthead.s_size    = constsize;
     consthead.s_scnptr  = dataoffset;
     consthead.s_relptr  = 0;
     consthead.s_lnnoptr = 0;
     consthead.s_nreloc  = 0;
     consthead.s_nlnno   = 0;
-    consthead.s_flags   = 0x40300040;   // read only 4 byte aligned initialised data
-    dataoffset += constseg;
+    // read only 4 byte aligned initialised data
+    consthead.s_flags   = 0x40300040;
+    dataoffset += constsize;
 
     strcpy(datahead.s_name, ".data");
     datahead.s_paddr    = 0;
     datahead.s_vaddr    = 0;
-    datahead.s_size	    = dataseg;
+    datahead.s_size	    = datasize;
     datahead.s_scnptr   = dataoffset;
     datahead.s_relptr   = 0;
     datahead.s_lnnoptr  = 0;
     datahead.s_nreloc   = 0;
     datahead.s_nlnno    = 0;
-    datahead.s_flags    = 0xC0300040;   // read/writable 4 byte aligned initialised data
-    dataoffset += dataseg;
+    // read/writable 4 byte aligned initialised data
+    datahead.s_flags    = 0xC0300040;
+    dataoffset += datasize;
 
     strcpy(swtabhead.s_name, "_SWTAB");
     swtabhead.s_paddr   = 0;
     swtabhead.s_vaddr   = 0;
-    swtabhead.s_size    = swtabseg;
+    swtabhead.s_size    = swtabsize;
     swtabhead.s_scnptr  = dataoffset;
     swtabhead.s_relptr  = swtabreloffset;
     swtabhead.s_lnnoptr = 0;
-    swtabhead.s_nreloc  = (swtabseg / 4);   // every 32 bit entry is relocated
+    // every 32 bit entry is relocated
+    swtabhead.s_nreloc  = (swtabsize / 4);
     swtabhead.s_nlnno   = 0;
-    swtabhead.s_flags   = 0x40300040;       // read only 4 byte aligned initiliased data
-    dataoffset += swtabseg;
+    // read only 4 byte aligned initiliased data
+    swtabhead.s_flags   = 0x40300040;
+    dataoffset += swtabsize;
 
     // In order that we can traverse the trap table at run time we want
     // to ensure that our main trap table base is loaded first in the executable image.
@@ -908,20 +1357,22 @@ void initcoff(FILE * output)
     // after a $ symbol (the $ and token are then discarded by the linker).
     // Why letters B, D, F and not A,B,C?  In case we ever want to insert some other
     // sections in the sequence...
-    if (mainprog != 0)
+    if (mainprogflag != 0)
         strcpy(traphead.s_name, "_ITRAP$B");
     else
         strcpy(traphead.s_name, "_ITRAP$D");
     traphead.s_paddr    = 0;
     traphead.s_vaddr    = 0;
-    traphead.s_size     = trapseg;
+    traphead.s_size     = trapsize;
     traphead.s_scnptr   = dataoffset;
     traphead.s_relptr   = trapreloffset;
     traphead.s_lnnoptr  = 0;
-    traphead.s_nreloc   = (trapseg / 8);    // every 32 byte entry has 4 addresses to be relocated
+    // every 32 byte entry has 4 addresses to be relocated
+    traphead.s_nreloc   = (trapsize / 8);
     traphead.s_nlnno    = 0;
-    traphead.s_flags    = 0x40600040;       // read only 32 byte aligned initialised data
-    dataoffset += trapseg;
+    // read only 32 byte aligned initialised data
+    traphead.s_flags    = 0x40600040;
+    dataoffset += trapsize;
 
     // the end section will be linked after all other trap tables
     strcpy(trapendhead.s_name, "_ITRAP$F");
@@ -929,11 +1380,13 @@ void initcoff(FILE * output)
     trapendhead.s_vaddr   = 0;
     trapendhead.s_size    = trapendseg;
     trapendhead.s_scnptr  = dataoffset;
-    trapendhead.s_relptr  = 0;          // no relocations - it's just a placeholder
+    // no relocations - it's just a placeholder
+    trapendhead.s_relptr  = 0;
     trapendhead.s_lnnoptr = 0;
     trapendhead.s_nreloc  = 0;
     trapendhead.s_nlnno   = 0;
-    trapendhead.s_flags   = 0x40600040; // read only 32 byte aligned initialised data
+    // read only 32 byte aligned initialised data
+    trapendhead.s_flags   = 0x40600040;
     dataoffset += trapendseg;
 
     // Now assemble the main file header
@@ -952,37 +1405,42 @@ void initcoff(FILE * output)
     fwrite(&directhead, 1, SZSECHDR, output);
     directsection = 1;
 
-    i = 2;  // to count off the sections - directive is #1, so next will be #2
+    // to count off the sections - directive is #1, so next will be #2
+    i = 2;
 
-    if (codeseg  != 0)
+    if (codesize  != 0)
     {
         fwrite(&codehead, 1, SZSECHDR, output);
         codesection = i++;
     }
     else
         codesection = 0;
-    if (constseg != 0)
+
+    if (constsize != 0)
     {
         fwrite(&consthead, 1, SZSECHDR, output);
         constsection = i++;
     }
     else
         constsection = 0;
-    if (dataseg  != 0)
+
+    if (datasize  != 0)
     {
         fwrite(&datahead, 1, SZSECHDR, output);
         datasection = i++;
     }
     else
         datasection = 0;
-    if (swtabseg != 0)
+
+    if (swtabsize != 0)
     {
         fwrite(&swtabhead, 1, SZSECHDR, output);
         swtabsection = i++;
     }
     else
         swtabsection = 0;
-    if (trapseg  != 0)
+
+    if (trapsize  != 0)
     {
         fwrite(&traphead, 1, SZSECHDR, output);
         trapsection = i++;
@@ -990,7 +1448,7 @@ void initcoff(FILE * output)
     else
         trapsection = 0;
 
-    if (mainprog != 0)
+    if (trapendflag != 0)
     {
         fwrite(&trapendhead, 1, SZSECHDR, output);
         trapendsection = i++;
@@ -1001,11 +1459,11 @@ void initcoff(FILE * output)
     // since it's not really part of anything else useful, we output
     // the linker directive now...
     for (i=0; i < SZDIRECTIVE; i++)
-        writebyte(DIRECTSECTION, directive[i]);
+        writebyte(DIRECTIVE_SECTION, directive[i]);
 
     // and similarly we put 16 bytes of zeroes into the trapend section
     for (i=0; i < trapendseg; i++)
-        writebyte(TRAPENDSECTION, 0);
+        writebyte(TRAPEND_SECTION, 0);
 }
 
 //
@@ -1015,14 +1473,15 @@ void initcoff(FILE * output)
 // (c) we miss out any null sections, so they don't get symbols
 // (d) the pseudo-symbol "filename" is output first, so the section symbols are
 //     offset by however many records it takes to fit the path name
-int directsymbol;
+int directivesymbol;
 int codesymbol;
 int constsymbol;
 int datasymbol;
 int swtabsymbol;
 int trapsymbol;
 int trapendsymbol;
-int firstusersymbol;    // the first user symbol table entry (offset by the above junk)
+// the first user symbol table entry (offset by the above junk)
+int firstusersymbol;
 
 static char auxzeroes[18] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -1040,16 +1499,24 @@ static void putsectionsymbols(FILE *output)
 
     // the first pseudo-symbol is the source filename, which we've stored in path_buffer
     filename = path_buffer;
-    length = strlen(filename) + 1;  // plus one 'cos we need to zero terminate it (I think)
-    count = (length + 17)/18;   // this is how many 18 byte aux records that will take
+    // plus one 'cos we need to zero terminate it (I think)
+    length = strlen(filename) + 1;
+    // this is how many 18 byte aux records that will take
+    count = (length + 17)/18;
 
-    sym.n.n_n.n_offset	= 0;    // to make sure we get a clean name
+    // to make sure we get a clean name
+    sym.n.n_n.n_offset	= 0;
     strcpy(sym.n.n_name, ".file");
-    sym.n_scnum     = -2;       // special debug entry
-    sym.n_value     = 0;        // no value
-    sym.n_type      = 0;        // no type
-    sym.n_sclass    = 103;      // a filename
-    sym.n_numaux    = count;    // the number of auxilliary records we're using
+    // special debug entry
+    sym.n_scnum     = -2;
+    // no value
+    sym.n_value     = 0;
+    // no type
+    sym.n_type      = 0;
+    // a filename
+    sym.n_sclass    = 103;
+    // the number of auxilliary records we're using
+    sym.n_numaux    = count;
     fwrite(&sym, 1, SZSYMENT, output);
     symtaboffset += SZSYMENT;
 
@@ -1062,11 +1529,16 @@ static void putsectionsymbols(FILE *output)
     // The next symbol we write out is the mysterious COMP.ID symbol.
     // Why?  I have no idea, but Microsoft tools like to find this....
     strcpy(sym.n.n_name, "@comp.id");
-    sym.n_scnum     = -1;       // special absolute entry
-    sym.n_value     = 0x151FE8; // mystery value
-    sym.n_type      = 0;        // no type
-    sym.n_sclass    = 3;        // static
-    sym.n_numaux    = 0;        // no aux record
+    // special absolute entry
+    sym.n_scnum     = -1;
+    // mystery value
+    sym.n_value     = 0x151FE8;
+    // no type
+    sym.n_type      = 0;
+    // static
+    sym.n_sclass    = 3;
+    // no aux record
+    sym.n_numaux    = 0;
     fwrite(&sym, 1, SZSYMENT, output);
     symtaboffset += SZSYMENT;
 
@@ -1074,12 +1546,17 @@ static void putsectionsymbols(FILE *output)
     symbol = count + 2;
 
     // set up all the common elements of a section symbol
-    sym.n_value     = 0;    // zero (section base)
-    sym.n_type      = 0;    // NOT a function
-    sym.n_sclass    = 3;    // static
-    sym.n_numaux    = 1;    // each has one auxilliary
+    // zero (section base)
+    sym.n_value     = 0;
+    // NOT a function
+    sym.n_type      = 0;
+    // static
+    sym.n_sclass    = 3;
+    // each has one auxilliary
+    sym.n_numaux    = 1;
 
-    aux.x_chsum = 0;        // we don't checksum the sections
+    // we don't checksum the sections
+    aux.x_chsum = 0;
     aux.x_secno = 0;
     aux.x_selno = 0;
     aux.x_pad   = 0;
@@ -1087,7 +1564,8 @@ static void putsectionsymbols(FILE *output)
     sequence = 1;
 
     // directive first
-    sym.n.n_n.n_offset  = 0;    // to make sure we get a clean name
+    // to make sure we get a clean name
+    sym.n.n_n.n_offset  = 0;
     strcpy(sym.n.n_name, ".drectve");
     sym.n_scnum = sequence;
     fwrite(&sym, 1, SZSYMENT, output);
@@ -1099,20 +1577,21 @@ static void putsectionsymbols(FILE *output)
     fwrite(&aux, 1, SZSYMENT, output);
     symtaboffset += SZSYMENT;
 
-    directsymbol = symbol;
+    directivesymbol = symbol;
     symbol += 2;
 
     // code
-    if (codeseg  != 0)
+    if (codesize  != 0)
     {
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
         strcpy(sym.n.n_name, ".text");
         sequence += 1;
         sym.n_scnum = sequence;
         fwrite(&sym, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
 
-        aux.x_scnlen = codeseg;
+        aux.x_scnlen = codesize;
         aux.x_nreloc = nreloc;
         aux.x_nlnno = nlines;
         fwrite(&aux, 1, SZSYMENT, output);
@@ -1121,17 +1600,19 @@ static void putsectionsymbols(FILE *output)
         codesymbol = symbol;
         symbol += 2;
     }
+
     // const
-    if (constseg != 0)
+    if (constsize != 0)
     {
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
         strcpy(sym.n.n_name, ".rdata");
         sequence += 1;
         sym.n_scnum = sequence;
         fwrite(&sym, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
 
-        aux.x_scnlen = constseg;
+        aux.x_scnlen = constsize;
         aux.x_nreloc = 0;
         aux.x_nlnno = 0;
         fwrite(&aux, 1, SZSYMENT, output);
@@ -1140,17 +1621,19 @@ static void putsectionsymbols(FILE *output)
         constsymbol = symbol;
         symbol += 2;
     }
+
     // data
-    if (dataseg  != 0)
+    if (datasize  != 0)
 	{
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
         strcpy(sym.n.n_name, ".data");
         sequence += 1;
         sym.n_scnum = sequence;
         fwrite(&sym, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
 
-        aux.x_scnlen = dataseg;
+        aux.x_scnlen = datasize;
         aux.x_nreloc = 0;
         aux.x_nlnno = 0;
         fwrite(&aux, 1, SZSYMENT, output);
@@ -1159,18 +1642,20 @@ static void putsectionsymbols(FILE *output)
         datasymbol = symbol;
         symbol += 2;
     }
+
     // switch
-    if (swtabseg != 0)
+    if (swtabsize != 0)
     {
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
         strcpy(sym.n.n_name, "_SWTAB");
         sequence += 1;
         sym.n_scnum = sequence;
         fwrite(&sym, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
 
-        aux.x_scnlen = swtabseg;
-        aux.x_nreloc = swtabseg/4;
+        aux.x_scnlen = swtabsize;
+        aux.x_nreloc = swtabsize/4;
         aux.x_nlnno = 0;
         fwrite(&aux, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
@@ -1178,11 +1663,13 @@ static void putsectionsymbols(FILE *output)
         swtabsymbol = symbol;
         symbol += 2;
     }
+
     // trap
-    if (trapseg  != 0)
+    if (trapsize  != 0)
     {
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
-        if (mainprog != 0)
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
+        if (mainprogflag != 0)
             strcpy(sym.n.n_name, "_ITRAP$B");
         else
             strcpy(sym.n.n_name, "_ITRAP$D");
@@ -1191,8 +1678,8 @@ static void putsectionsymbols(FILE *output)
         fwrite(&sym, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
 
-        aux.x_scnlen = trapseg;
-        aux.x_nreloc = trapseg/8;
+        aux.x_scnlen = trapsize;
+        aux.x_nreloc = trapsize/8;
         aux.x_nlnno = 0;
         fwrite(&aux, 1, SZSYMENT, output);
         symtaboffset += SZSYMENT;
@@ -1202,9 +1689,10 @@ static void putsectionsymbols(FILE *output)
     }
 
     // trap end
-    if (mainprog  != 0)
+    if (trapendflag  != 0)
     {
-        sym.n.n_n.n_offset = 0; // to make sure we get a clean name
+        // to make sure we get a clean name
+        sym.n.n_n.n_offset = 0;
         strcpy(sym.n.n_name, "_ITRAP$F");
         sequence += 1;
         sym.n_scnum = sequence;
@@ -1221,13 +1709,18 @@ static void putsectionsymbols(FILE *output)
         symbol += 2;
     }
 
-    firstusersymbol = symbol;   // this is where the program symbol table will start
-    if (mainprog != 0)          // plus an extra two for the trap table limits if needed
-        firstusersymbol += 2;
+    // this is where the program symbol table will start
+    firstusersymbol = symbol;
+    // plus an extra one (if needed) for the trapbase table limit symbol
+    if (mainprogflag != 0)
+        firstusersymbol += 1;
+    // plus an extra one (if needed) for the trapend table limit symbol
+    if (trapendflag != 0)
+        firstusersymbol += 1;
 
 }
 
-// write the exernal spec table to the symbol table area
+// write the external spec table to the symbol table area
 static void putexternalspecs(FILE *output)
 {
     int i, type, ptr, index;
@@ -1235,7 +1728,8 @@ static void putexternalspecs(FILE *output)
 
     fseek(output, symtaboffset, 0);
 
-    index = 1;  // pass 2 spec's use 1-based IDs
+    // pass 2 spec's use 1-based IDs
+    index = 1;
 
     for (i = 0; i < nm; i++)
     {
@@ -1243,7 +1737,8 @@ static void putexternalspecs(FILE *output)
         ptr = m[i].info;
         if (type == IF_REQEXT)
         {
-            if (specs[index].used)
+            // but, only write this symbol if used
+            if ((specs[index].flags & SYMISUSED) != 0)
             {
                 sym.n.n_n.n_zeroes = 0;
                 sym.n.n_n.n_offset = 0;
@@ -1251,12 +1746,26 @@ static void putexternalspecs(FILE *output)
                     strcpy(sym.n.n_name, &named[ptr]);
                 else
                     sym.n.n_n.n_offset = ptr + 4;
-                sym.n_value = 0;    // zero (undefined)
-                sym.n_scnum = 0;    // section zero - external
-                sym.n_type = 0x20;  // assume this is a function
-                if (specs[index].isdata) sym.n_type = 0;    // No, it's a data label
-                sym.n_sclass = 2;   // external
-                sym.n_numaux = 0;   // no auxilliaries
+                // zero (undefined)
+                sym.n_value = 0;
+                // section zero (external)
+                sym.n_scnum = 0;
+
+                // check if this is a reference to a data or function symbol
+                if ((specs[index].flags & SYMISDATA) != 0)
+                {
+                    // tag as global data symbol
+                    sym.n_type = 0;
+                }
+                else
+                {
+                    // tag as global code/function symbol
+                    sym.n_type = 0x20;
+                }
+                // external
+                sym.n_sclass = 2;
+                // no auxilliaries
+                sym.n_numaux = 0;
 
                 fwrite(&sym, 1, SZSYMENT, output);
                 symtaboffset += SZSYMENT;
@@ -1286,11 +1795,16 @@ static void putexternaldefs(FILE *output)
                 strcpy(sym.n.n_name, name);
             else
                 sym.n.n_n.n_offset = ptr + 4;
-            sym.n_value = m[i].address; // address of this item
-            sym.n_scnum = codesection;  // section - code
-            sym.n_type = 0x20;  // this is a function
-            sym.n_sclass = 2;   // external
-            sym.n_numaux = 0;   // no auxilliaries
+            // address of this item
+            sym.n_value = m[i].address;
+            // section - code
+            sym.n_scnum = codesection;
+            // this is a function
+            sym.n_type = 0x20;
+            // external
+            sym.n_sclass = 2;
+            // no auxilliaries
+            sym.n_numaux = 0;
             fwrite(&sym, 1, SZSYMENT, output);
             symtaboffset += SZSYMENT;
         }
@@ -1303,11 +1817,16 @@ static void putexternaldefs(FILE *output)
                 strcpy(sym.n.n_name, name);
             else
                 sym.n.n_n.n_offset = ptr + 4;
-            sym.n_value = m[i].address; // address of this item
-            sym.n_scnum = datasection;  // section - data
-            sym.n_type = 0;             // this is NOT a function
-            sym.n_sclass = 2;           // external
-            sym.n_numaux = 0;           // no auxilliaries
+            // address of this item
+            sym.n_value = m[i].address;
+            // section - data
+            sym.n_scnum = datasection;
+            // this is NOT a function
+            sym.n_type = 0;
+            // external
+            sym.n_sclass = 2;
+            // no auxilliaries
+            sym.n_numaux = 0;
             fwrite(&sym, 1, SZSYMENT, output);
             symtaboffset += SZSYMENT;
         }
@@ -1324,13 +1843,16 @@ static void putstringtable(FILE *output)
 
     fseek(output, strtaboffset, 0);
 
-    count = namedp + 4;                 // the size (bizarrely) includes the size word
-    fwrite(&count, 4, 1, output);       // write the size
-    fwrite(named, 1, namedp, output);   // write the string table
+    // the string table must include a size word at the start
+    count = namedp + 4;
+    // so, write the table size
+    fwrite(&count, 4, 1, output);
+    // then write the string table
+    fwrite(named, 1, namedp, output);
 }
 
 // plant the array of blocks used by %signal to trap
-// events in the trap segment.  These blocks contain:
+// events in the trap section.  These blocks contain:
 // <StartAddr32><EndAddr32><TrapAddr32><FromAddr32><EventMask16><Name[14]>
 static void puttraptable(FILE *output)
 {
@@ -1338,56 +1860,129 @@ static void puttraptable(FILE *output)
     struct coffsyment sym;
     struct stfix *sp;
     char *namep;
+    int address[4],offset[4];
+    int segidx;
 
     for (i = 0; i < ns; i++)
     {
         sp = &stackfix[i];
-        writew32(TRAPSECTION, sp->start);
-        writew32(TRAPSECTION, sp->end);
+        // Obtain the offset values of the various locations
+        // Each value is an offset inside the .text section
+        offset[0] = sp->start;
+        offset[1] = sp->end;
         // trap and evfrom are actually labels, so we look them up
-        j = findlabel(sp->trap);
-        writew32(TRAPSECTION, labels[j].address);
-        j = findlabel(sp->evfrom);
-        writew32(TRAPSECTION, labels[j].address);
-        writew16(TRAPSECTION, sp->events);
+        // and get the relevant address
+        offset[2] = labels[findlabel(sp->trap)].address;
+        offset[3] = labels[findlabel(sp->evfrom)].address;
+
+        // If adding relocations from the .trap section base then
+        // 1) relocation symbol = .text symbol
+        // 2) address[j] = offset[j]
+        // that is:
+        // segidx = symbols[CODE_SECTION];
+        // address[0] = offset[0];
+        // address[1] = offset[1];
+        // address[2] = offset[2];
+        // address[3] = offset[3];
+
+        // If adding relocations from the routine symbol base then
+        // 1) relocation symbol = routine symbol
+        // 2) address[j] = offset[j] - offset[0]
+        // that is:
+        // segidx = sp->symid;
+        // address[0] = offset[0] - offset[0];
+        // address[1] = offset[1] - offset[0];
+        // address[2] = offset[2] - offset[0];
+        // address[3] = offset[3] - offset[0];
+
+        // Decision:
+        // Use as relocation base, the .text symbol
+        segidx = codesymbol;
+        for (j=0; j < 4; j++)
+        {
+            address[j] = offset[j];
+        }
+
+        // add the location of the routine start
+        writew32(TRAP_SECTION, address[0]);
+        // add the location of the routine end
+        writew32(TRAP_SECTION, address[1]);
+
+        // trap and evfrom are actually labels, so we look them up
+        // find and put the location of the trap start
+        writew32(TRAP_SECTION, address[2]);
+        // find and put the location of the trap evfrom
+        writew32(TRAP_SECTION, address[3]);
+        // put the events caught by the trap
+        writew16(TRAP_SECTION, sp->events);
+        // write the name of the routine
         namep = &named[sp->namep];
         for(j=0; j<14; j++)
         {
-            writebyte(TRAPSECTION, *namep);
+            writebyte(TRAP_SECTION, *namep);
             if (*namep) namep++;
         }
-        // Of course the four code addresses we've just planted - start/end/entry/from - all
-        // need to be relocated by the beginning of the code segment, so we do four
-        // relocation records next...
+
+        // Of course the four code addresses we've just planted
+        // - start/end/entry/from
+        // These all need relocating by the base symbol chosen
+        // so we do four relocation records next...
         addr = i * 32;  // address of first words to relocate
         for (j=0; j < 4; j++)
         {
-            writew32(TRAPRELSECTION, addr + (j * 4));   // offset in section of word to relocate
-            writew32(TRAPRELSECTION, codesymbol);       // symbol index for .text
-            writew16(TRAPRELSECTION, 6);                // relocate by actual 32 bit address
+            // offset in this section of the word to relocate
+            writew32(TRAPREL_SECTION, addr + (j * 4));
+            // use the symbol index for the chosen relocation base
+            // that is, symbol index for .text or for the local routine
+            writew32(TRAPREL_SECTION, segidx);
+            // relocate by actual 32 bit address
+            writew16(TRAPREL_SECTION, 6);
         }
     }
 
-    // if this was the main program file, we define a symbol that
-    // corresponds to the base of the trap table, and one at the end.
-    if (mainprog != 0)
+    // Add the _imptrapbase symbol?
+    // define a symbol that marks the end of the trap table
+    if (mainprogflag != 0)
     {
         i = newname(TRAPSTART);
         sym.n.n_n.n_zeroes = 0;
         sym.n.n_n.n_offset = i + 4;
-        sym.n_value = 0;            // first address of this section
-        sym.n_scnum = trapsection;  // this section ID
-        sym.n_type = 0;             // this is NOT a function
-        sym.n_sclass = 2;           // external definition
-        sym.n_numaux = 0;           // no auxilliaries
+        // note first address of this section
+        sym.n_value = 0;
+        // note which section ID
+        sym.n_scnum = trapsection;
+        // this is NOT a function
+        sym.n_type = 0;
+        // and it's an external definition
+        sym.n_sclass = 2;
+        // with no auxilliaries
+        sym.n_numaux = 0;
         fseek(output, symtaboffset, 0);
         fwrite(&sym, 1, SZSYMENT, output);
-        // and again for the trap end
+        symtaboffset += SZSYMENT;
+    }
+
+    // Add the _imptrapend symbol?
+    // define a symbol that marks the end of the trap table
+    if (trapendflag != 0)
+    {
         i = newname(TRAPEND);
+        sym.n.n_n.n_zeroes = 0;
         sym.n.n_n.n_offset = i + 4;
-        sym.n_scnum = trapendsection;   // end section ID
+        // note first address of this section
+        sym.n_value = 0;
+        // note which section ID
+        sym.n_scnum = trapendsection;
+        // this is NOT a function
+        sym.n_type = 0;
+        // and it's an external definition
+        sym.n_sclass = 2;
+        // with no auxilliaries
+        sym.n_numaux = 0;
+        fseek(output, symtaboffset, 0);
         fwrite(&sym, 1, SZSYMENT, output);
-        symtaboffset += (SZSYMENT*2);
+        fwrite(&sym, 1, SZSYMENT, output);
+        symtaboffset += SZSYMENT;
     }
 }
 
@@ -1400,23 +1995,22 @@ static void putlinenumbers(FILE *output)
 
     while (i < nlines)
     {
-        writew32(LINENOSECTION, lines[i].offset);
-        writew16(LINENOSECTION, lines[i].line);
+        writew32(LINENO_SECTION, lines[i].offset);
+        writew16(LINENO_SECTION, lines[i].line);
         i = i + 1;
     }
 }
 
 // Main Pass - Reread the input file and write the object code
-static void readwrite(FILE *input, FILE *output)
+static void putcode(FILE *input, FILE *output)
 {
     int type, length, current, ptr, id, value, condition, cad, i, segidx;
-    int cotp, datap, swtp, offset;
+    int swtp, offset;
+    int count;
     unsigned char buffer[256];
 
     current = 0;
     cad = 0;
-    cotp = 0;
-    datap = 0;
     swtp = 0;
     for(;;)
     {
@@ -1425,103 +2019,126 @@ static void readwrite(FILE *input, FILE *output)
             break;
         switch(type)
         {
-        case IF_OBJ:    // plain object code
+        case IF_OBJ:
+            // plain object code
             if (m[current].what != IF_OBJ)
                 current += 1;
             for (i = 0; i < length; i++)
-                writebyte(CODESECTION,buffer[i]);
+                writebyte(CODE_SECTION,buffer[i]);
             cad += length;
             break;
 
-        case IF_DATA:   // dataseg offset word
+        case IF_DATA:
+            // data section offset word
             if (m[current].what != IF_OBJ)
                 current += 1;
             for (i=0; i < WORDSIZE; i++)
-                writebyte(CODESECTION, buffer[i]);
+                writebyte(CODE_SECTION, buffer[i]);
 
             segidx = datasymbol;
 
-            writew32(CODERELSECTION, cad);      // offset in section of word to relocate
-            writew32(CODERELSECTION, segidx);   // symbol for section
-            writew16(CODERELSECTION, 6);        // relocate by actual 32 bit address
+            // offset in the section of word to relocate
+            writew32(CODEREL_SECTION, cad);
+            // symbol for section
+            writew32(CODEREL_SECTION, segidx);
+            // relocate by actual 32 bit address
+            writew16(CODEREL_SECTION, 6);
             cad += WORDSIZE;
             break;
 
-        case IF_CONST:  // const seg offset word
+        case IF_CONST:
+            // const section offset word
             if (m[current].what != IF_OBJ)
                 current += 1;
             for (i=0; i < WORDSIZE; i++)
-                writebyte(CODESECTION, buffer[i]);
+                writebyte(CODE_SECTION, buffer[i]);
 
             segidx = constsymbol;
 
-            writew32(CODERELSECTION, cad);      // offset in section of word to relocate
-            writew32(CODERELSECTION, segidx);   // symbol for section
-            writew16(CODERELSECTION, 6);        // relocate by actual 32 bit address
+            // offset in section of word to relocate
+            writew32(CODEREL_SECTION, cad);
+            // symbol for section
+            writew32(CODEREL_SECTION, segidx);
+            // relocate by actual 32 bit address
+            writew16(CODEREL_SECTION, 6);
             cad += WORDSIZE;
             break;
 
-        case IF_DISPLAY:    // DISPLAY should have been converted to OBJ
+        case IF_DISPLAY:
+            // DISPLAY should have been converted to OBJ
             break;
 
-        case IF_JUMP:       // unconditional jump to label
+        case IF_JUMP:
+            // unconditional jump to label
             current += 1;
-            id = buffer[0] | (buffer[1] << 8);  // target label number
+            // get the target label number
+            id = buffer[0] | (buffer[1] << 8);
             ptr = findlabel(id);
             value = labels[ptr].address;
-            if (m[current].size == 2)           // short jump
+            // is this a short jump?
+            if (m[current].size == 2)
             {
-                writebyte(CODESECTION, 0xEB);
-                writebyte(CODESECTION, value - (m[current].address + 2));
+                writebyte(CODE_SECTION, 0xEB);
+                writebyte(CODE_SECTION, value - (m[current].address + 2));
                 cad += 2;
             }
             else
             {
-                writebyte(CODESECTION, 0xE9);   // JMP
+                // JMP
+                writebyte(CODE_SECTION, 0xE9);
                 value = value - (m[current].address + 5);
-                writew32(CODESECTION, value);
+                writew32(CODE_SECTION, value);
                 cad += 5;
             }
             break;
 
-        case IF_JCOND:  // cond jump to label JE, JNE, JLE, JL, JGE, JG
+        case IF_JCOND:
+            // cond jump to label JE, JNE, JLE, JL, JGE, JG
             current += 1;
             condition = buffer[0];
-            id = buffer[1] | (buffer[2] << 8);  // target label number
+            // get the target label number
+            id = buffer[1] | (buffer[2] << 8);
             ptr = findlabel(id);
             value = labels[ptr].address;
-            if (m[current].size == 2)           // short jump
+            // is this a short jump?
+            if (m[current].size == 2)
             {
-                writebyte(CODESECTION, jcondop[condition]);
-                writebyte(CODESECTION, value - (m[current].address + 2));
+                writebyte(CODE_SECTION, jcondop[condition]);
+                writebyte(CODE_SECTION, value - (m[current].address + 2));
                 cad += 2;
             }
             else
             {
-                writebyte(CODESECTION, 0x0F);   // prefix
-                writebyte(CODESECTION, jcondop[condition] + 0x10);
+                // prefix
+                writebyte(CODE_SECTION, 0x0F);
+                writebyte(CODE_SECTION, jcondop[condition] + 0x10);
                 value = value - (m[current].address + 6);
-                writew32(CODESECTION, value);
+                writew32(CODE_SECTION, value);
                 cad += 6;
             }
             break;
 
-        case IF_CALL:   // call a label
+        case IF_CALL:
+            // call a label
             current += 1;
-            id = buffer[0] | (buffer[1] << 8);  // target label number
+            // get the target label number
+            id = buffer[0] | (buffer[1] << 8);
             ptr = findlabel(id);
             value = labels[ptr].address;
-            writebyte(CODESECTION, 0xE8);       // CALL
+            // write a CALL instruction
+            writebyte(CODE_SECTION, 0xE8);
             value = value - (m[current].address + 5);
-            writew32(CODESECTION, value);
+            writew32(CODE_SECTION, value);
             cad += 5;
             break;
 
-        case IF_LABEL:  // define a label
+        case IF_LABEL:
+            // define a label
             current += 1;
             break;
 
-        case IF_FIXUP:  // define location for stack fixup instruction
+        case IF_FIXUP:
+            // define location for stack fixup instruction
             current += 1;
             value = m[current].info;
             // For backward compatibility reasons (mostly because it kept messing
@@ -1531,21 +2148,29 @@ static void readwrite(FILE *input, FILE *output)
             // them apart because the classic passes only two parameter bytes.
             if (length == 2)
             {
-                writebyte(CODESECTION, 0x81);   // SUB
-                writebyte(CODESECTION, 0xEC);   // SP
-                writew16(CODESECTION, value);   // Stack displacement
+                // SUB
+                writebyte(CODE_SECTION, 0x81);
+                // SP
+                writebyte(CODE_SECTION, 0xEC);
+                // Stack displacement
+                writew16(CODE_SECTION, value);
             }
             else
             {
-                writebyte(CODESECTION, 0xC8);       // ENTER
-                writew16(CODESECTION, value);       // Stack displacement
-                writebyte(CODESECTION, buffer[2]);  // level
+                // ENTER
+                writebyte(CODE_SECTION, 0xC8);
+                // Stack displacement
+                writew16(CODE_SECTION, value);
+                // level
+                writebyte(CODE_SECTION, buffer[2]);
             }
             // We now update our procedure record with the actual block start location
-            id = buffer[0] | (buffer[1] << 8);  // id number for fixup
+            // get the id number for fixup
+            id = buffer[0] | (buffer[1] << 8);
             for (ptr = 0; ptr < ns; ptr++)
             {
-                if (stackfix[ptr].id == id)     // found it
+                // have we found it?
+                if (stackfix[ptr].id == id)
                 {
                     stackfix[ptr].start = cad;
                     break;
@@ -1554,13 +2179,17 @@ static void readwrite(FILE *input, FILE *output)
             cad += 4;
             break;
 
-        case IF_SETFIX: // stack fixup <location> <amount> <eventmask> <event entry>
+        case IF_SETFIX:
+            // stack fixup <location> <amount> <eventmask> <event entry>
             // We don't need to do anything in the code stream here, but we use
             // this record to trigger an update of the end point in our block table
-            id = buffer[0] | (buffer[1] << 8);  // id number for fixup
+
+            // get the id number for fixup
+            id = buffer[0] | (buffer[1] << 8);
             for (ptr = 0; ptr < ns; ptr++)
             {
-                if (stackfix[ptr].id == id)     // found it
+                // have we found it?
+                if (stackfix[ptr].id == id)
                 {
                     stackfix[ptr].end = cad;
                     break;
@@ -1568,130 +2197,182 @@ static void readwrite(FILE *input, FILE *output)
             }
             break;
 
-        case IF_REQEXT: // external name spec
+        case IF_REQEXT:
+            // external name spec
             // already taken care of, but need to advance "current"
             current += 1;
             break;
 
-        case IF_REFLABEL:   // plant a label's relative address with optional offset
+        case IF_REFLABEL:
+            // plant a label's relative address with optional offset
             current += 1;
-            id = buffer[0] | (buffer[1] << 8);      // target label number
-            offset = buffer[2] | (buffer[3] << 8);  // offset
+            // get the target label number
+            id = buffer[0] | (buffer[1] << 8);
+            // and the offset
+            offset = buffer[2] | (buffer[3] << 8);
             ptr = findlabel(id);
-            value = labels[ptr].address;            // relative address of label from code section start
-            value = value - (m[current].address + WORDSIZE + offset);   // REFLABEL is WORDSIZE, then extra offset
-            writew32(CODESECTION, value);           // relative address + optional offset of label from current location
+            // get the relative address of label from code section start
+            value = labels[ptr].address;
+            // REFLABEL is WORDSIZE, then extra offset
+            value = value - (m[current].address + WORDSIZE + offset);
+            // we now have the relative address + optional offset of label from current location
+            writew32(CODE_SECTION, value);
             cad += 4;
             break;
 
-        case IF_REFEXT: // external name relative offset code word
+        case IF_REFEXT:
+            // external name relative offset code word
             if (m[current].what != IF_OBJ) current += 1;
-            for (i=0; i < WORDSIZE; i++) writebyte(CODESECTION,0);
+            for (i=0; i < WORDSIZE; i++)
+                writebyte(CODE_SECTION,0);
+//            writew32(CODE_SECTION,0);
             // reference index is in buffer[0,1]
             id = (buffer[1]<<8)|buffer[0];
-            offset = buffer[2] | (buffer[3] << 8);  // absolute 16-bit offset (should always be 0)
-            id = specs[id].p3index;         // remap according to our table
-            id += firstusersymbol;          // skip the symbol table entries for the sections
+            // but the absolute 16-bit offset (should always be 0)
+            offset = buffer[2] | (buffer[3] << 8);
+            // now to remap according to our table
+            id = specs[id].p3index;
+            // skip the symbol table entries for the sections
+            id += firstusersymbol;
 
-            writew32(CODERELSECTION, cad);  // offset in section of word to relocate
-            writew32(CODERELSECTION, id);   // symbol index for this reference
-            writew16(CODERELSECTION, 0x14); // relocate by relative 32 bit address
+            // note the offset in section of word to relocate
+            writew32(CODEREL_SECTION, cad);
+            // indicate the symbol index for this reference
+            writew32(CODEREL_SECTION, id);
+            // relocate by relative 32 bit address
+            writew16(CODEREL_SECTION, 0x14);
 
             cad += WORDSIZE;
             break;
 
-        case IF_BSS:    // BSS should have been converted to OBJ
+        case IF_BSS:
+            // BSS should have been converted to OBJ
             break;
 
-        case IF_COTWORD:    // Constant table word
+        case IF_COTWORD:
+            // Constant table word
             if (m[current].what != IF_COTWORD)
             {
                 current += 1;
             }
             for (i=0; i < 2; i++)
-                writebyte(CONSTSECTION, buffer[i]);
+                writebyte(CONST_SECTION, buffer[i]);
             break;
 
-        case IF_DATWORD:    // Data segment word
+        case IF_DATWORD:
+            // Data section word
             if (m[current].what != IF_DATWORD)
             {
                 current += 1;
             }
-            for (i=0; i < 2; i++)
-               writebyte(DATASECTION, buffer[i]);
+            // determine how many halfwords (= number of 2 byte chunks)
+            // Ensure count is zero
+            count = 0;
+            if (length == 2)
+            {
+                // old format of IF_DATWORD
+                count = 1;
+            }
+            else if (length == 4)
+            {
+                // new format of IF_DATWORD
+                count = buffer[2] | (buffer[3] << 8);
+            }
+//fprintf(stderr, "PUTCODE: DATWORD has length=%d, count=%d\n", length,count);
+
+            // determine how many bytes to add to the DATA section
+            for (i=0; i < count;i++)
+            {
+                writebyte(DATA_SECTION, buffer[0]);
+                writebyte(DATA_SECTION, buffer[1]);
+            }
             break;
 
-        case IF_SWTWORD:    // switch table entry - actually a label ID
+        case IF_SWTWORD:
+            // switch table entry - actually a label ID
             if (m[current].what != IF_SWTWORD)
             {
                 current += 1;
             }
-            id = buffer[0] | (buffer[1] << 8);  // target label number
+            // get the target label number
+            id = buffer[0] | (buffer[1] << 8);
             ptr = findlabel(id);
             value = labels[ptr].address;
 
-            writew32(SWTABSECTION, value);
+            writew32(SWTAB_SECTION, value);
             // we must also plant a relocation record to make this a code address
-            writew32(SWTABRELSECTION, swtp);        // offset in section of word to relocate
-            writew32(SWTABRELSECTION, codesymbol);  // symbol for section
-            writew16(SWTABRELSECTION, 6);           // relocate by actual 32 bit address
+            // put the offset in section of word to relocate
+            writew32(SWTABREL_SECTION, swtp);
+            // put the symbol for section
+            writew32(SWTABREL_SECTION, codesymbol);
+            // relocate by actual 32 bit address
+            writew16(SWTABREL_SECTION, 6);
             swtp += 4;
             break;
 
-        case IF_SOURCE: // name of the source file
+        case IF_SOURCE:
+            // name of the source file
             // HACK ALERT - we actually ignore the file name from PASS2 because
             // we've got a nicer library interface and we can get the REAL path
             break;
 
-        case IF_DEFEXTCODE: // define a code label that is external
+        case IF_DEFEXTCODE:
+            // define a code label that is external
             // already taken care of, but need to advance "current"
             current += 1;
             break;
 
-        case IF_DEFEXTDATA: // define a data label that is external
+        case IF_DEFEXTDATA:
+            // define a data label that is external
             // already taken care of, but need to advance "current"
             current += 1;
             break;
 
-        case IF_SWT:    // SWITCH table segment offset code word
+        case IF_SWT:
+            // SWITCH table segment offset code word
             if (m[current].what != IF_OBJ)
                 current += 1;
             for (i=0; i < WORDSIZE; i++)
-                writebyte(CODESECTION, buffer[i]);
+                writebyte(CODE_SECTION, buffer[i]);
 
             segidx = swtabsymbol;
 
-            writew32(CODERELSECTION, cad);      // offset in section of word to relocate
-            writew32(CODERELSECTION, segidx);   // symbol for section
-            writew16(CODERELSECTION, 6);        // relocate by actual 32 bit address
+            // note the offset in section of word to relocate
+            writew32(CODEREL_SECTION, cad);
+            // note the symbol for the section
+            writew32(CODEREL_SECTION, segidx);
+            // relocate by actual 32 bit address
+            writew16(CODEREL_SECTION, 6);
             cad += WORDSIZE;
             break;
 
-        case IF_LINE:   // line number info for the debugger
+        case IF_LINE:
+            // line number info for the debugger
             value = buffer[0] | (buffer[1] << 8);
             newlineno(value, cad);
             break;
 
-        case IF_ABSEXT: // external name absolute offset code word (data external)
+        case IF_ABSEXT:
+            // external name absolute offset code word (data external)
             if (m[current].what != IF_OBJ) current += 1;
-            // Now determine the offset (currently ibj record has it as a 16 bit value == 4 nibbles)
-            // the offset is in buffer[0,1] - it should always be a positive number
-            // However the Imp Compiler Pass2  doesn't generate a valid IF_ABSEXT record
-            // Due to current implementation of Imp Compiler Pass2 -
-            // the offset in buffer[0,1] also includes the base index of the underlying symbol
-            // JDM JDM - corection the IMP Pass2 now correctly stores the id,offset values
+            // JDM JDM - the IMP Pass2 now correctly stores the id,offset values
             id = ((buffer[1]<<8) | buffer[0]);
             offset = (buffer[3]<<8) | buffer[2] ;
 
-            writew32(CODESECTION, offset );
+            writew32(CODE_SECTION, offset );
 
             // id == reference index is in buffer[2,3], which we should already have
-            id = specs[id].p3index;         // remap according to our table
-            id += firstusersymbol;          // skip the symbol table entries for the sections
+            // remap according to our table
+            id = specs[id].p3index;
+            // skip the symbol table entries for the sections
+            id += firstusersymbol;
 
-            writew32(CODERELSECTION, cad);  // offset in section of word to relocate
-            writew32(CODERELSECTION, id);   // symbol index for this reference
-            writew16(CODERELSECTION, 6);    // relocate by actual 32 bit address
+            // put the offset in the section of the word to relocate
+            writew32(CODEREL_SECTION, cad);
+            // put the symbol index for this reference
+            writew32(CODEREL_SECTION, id);
+            // and relocate by actual 32 bit address
+            writew16(CODEREL_SECTION, 6);
 
             // HACK ALERT - our current intermediate code can't distinguish between
             // relative and absolute external relocations, so we can't do external data
@@ -1707,28 +2388,6 @@ static void readwrite(FILE *input, FILE *output)
     }
 }
 
-// run through the list of external specs, removing those that
-// have not actually been used, and mapping the indexes of those
-// that remain to a simple zero-based index
-void remapspecs()
-{
-	int i, index;
-
-    index = 0;  // note, although Pass2 references are 1-based, our map is 0-based
-    for (i = 1; i <= nspecs; i++)
-    {
-        if (specs[i].used)
-        {
-            specs[i].p3index = index;
-            index += 1;
-        }
-        else
-            specs[i].p3index = 0;
-    }
-    // reassign the specs counter so we know how many we will plant
-    nspecs = index;
-}
-
 void dumpobjectfile( char *inname, char *outname )
 {
     FILE * in;
@@ -1739,9 +2398,10 @@ void dumpobjectfile( char *inname, char *outname )
     // file name by assuming that the intermediate files have the same base
     // name and are in the same directory as the source.
 #ifdef MSVC
-    _fullpath(path_buffer, inname, _MAX_PATH);        // turn it into a full name
+    // turn it into a full name
+    _fullpath(path_buffer, inname, _MAX_PATH);
 #else
-//    realpath(inname, path_buffer);
+    //    realpath(inname, path_buffer);
     strcpy(path_buffer,realpath(inname, NULL));
 #endif
     // At this point we have the full filename of the input file
@@ -1753,7 +2413,8 @@ void dumpobjectfile( char *inname, char *outname )
     i = strlen(path_buffer);
     path_buffer[i - 2] = 'm';
     path_buffer[i - 1] = 'p';
-    path_index = newname(path_buffer);                // and put it in the string table
+    // Now put it in the string table
+    path_index = newname(path_buffer);
 
     // So, first open the input file
     in = fopen(inname, "r");
@@ -1777,20 +2438,20 @@ void dumpobjectfile( char *inname, char *outname )
         exit(1);
     }
 
-    initcoff(out);
+    initobjectfile(out);
     putsectionsymbols(out);
 
     // reset the line number information
     nlines = 0;
     lastlinead = -1;
 
-    readwrite(in, out);
+    putcode(in, out);
 
     // now plant the trap table
     puttraptable(out);
     // now output the line number records for the debugger
     putlinenumbers(out);
-    // Now the xternals
+    // Now the externals
     putexternalspecs(out);
     putexternaldefs(out);
     putstringtable(out);
@@ -1801,7 +2462,7 @@ void dumpobjectfile( char *inname, char *outname )
     fclose(out);
 }
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     if ((argc != 2) && (argc != 3))
     {
@@ -1812,6 +2473,7 @@ void main(int argc, char **argv)
     readpass1( argv[1] );
 
     initlabels();
+
     while (improvejumpsizes())
         initlabels();
     computesizes();
@@ -1827,10 +2489,31 @@ void main(int argc, char **argv)
         dumpobjectfile( argv[1], argv[2] );
     }
 
-    dataseg = dataseg+constseg+swtabseg+bssseg+displayseg;
-    fprintf(stderr, "Code %d bytes  Data %d bytes  Diag %d bytes  Total size %d bytes\n",
-        codeseg, dataseg, trapseg, codeseg+dataseg+trapseg);
-    fprintf(stderr, "Generated for IMP source file: '%s'\n\n",path_buffer);
+    fprintf(stderr, "\n\n");
+    fprintf(stderr, " COFF object file generated from IMP source file: '%s'\n",path_buffer);
+
+    datasize = datasize+constsize+swtabsize+bsssize;
+    fprintf(stderr, " +----------+---------------------+---------+---------+---------+------------+\n");
+    fprintf(stderr, " | Sections |       Symbols       | Code    | Data    | Diag    | Total size |\n");
+    fprintf(stderr, " +----------+----------+----------+---------+---------+---------+------------+\n");
+    fprintf(stderr, " |  (count) | Internal | External | (bytes) | (bytes) | (bytes) | (bytes)    |\n");
+    fprintf(stderr, " +----------+----------+----------+---------+---------+---------+------------+\n");
+    fprintf(stderr, " | %8d | %8d | %8d | %7d | %7d | %7d | %10d |\n",
+                    ncoffsections,
+                    intsyms,
+                    extsyms,
+                    codesize,
+                    datasize,
+                    trapsize,
+                    datasize+codesize+trapsize);
+    fprintf(stderr, " +----------+----------+----------+---------+---------+---------+------------+\n");
+    fprintf(stderr, "\n\n");
+
+//    datasize = datasize+constsize+swtabsize+bsssize;
+//    fprintf(stderr, "Code %d bytes  Data %d bytes  Diag %d bytes  Total size %d bytes\n",
+//        codesize, datasize, trapsize, datasize+codesize+trapsize);
+//    fprintf(stderr, "Generated for IMP source file: '%s'\n\n",path_buffer);
+
 
     exit(0);
 }

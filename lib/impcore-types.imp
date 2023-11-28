@@ -18,8 +18,8 @@
     %constinteger  labeltype    = 10
     !--------------------------------------------------------------------------
     !--------------------------------------------------------------------------
-    ! This function decodes the returned value of the typeof function to be a
-    ! corresponding string value
+    ! This function decodes the returned value of the typeof function to that
+    ! of a corresponding string value
     !--------------------------------------------------------------------------
     %external %string(255) %function typeName( %integer t )
         %string(255) s

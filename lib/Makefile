@@ -24,9 +24,10 @@ OBJS=impcore-arrayutils.o \
      imprtl-check.o \
      imprtl-event.o \
      imprtl-io.o \
-     imprtl-file.o \
      imprtl-main.o \
+     imprtl-file.o \
      imprtl-trap.o \
+     imprtl-trapend.o \
      prim-rtl-file.o
 
 IBJS=impcore-arrayutils.ibj \
@@ -46,7 +47,8 @@ IBJS=impcore-arrayutils.ibj \
      imprtl-io.ibj \
      imprtl-file.ibj \
      imprtl-main.ibj \
-     imprtl-trap.ibj
+     imprtl-trap.ibj \
+     imprtl-trapend.ibj
 
 all:	libimp77.a
 

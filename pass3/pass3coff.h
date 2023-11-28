@@ -7,7 +7,12 @@
 #define R_386_32    1
 #define R_386_PC32  2
 
-#define SYMNMLEN    8
+#ifdef MSVC
+    #define SYMNMLEN    8
+#else
+    #define SYMNMLEN    9
+#endif
+
 #define FILNMLEN    14
 #define	DIMNUM      4
 

@@ -81,6 +81,16 @@
     %end
 
     !--------------------------------------------------------------------------
+    %external %integer %function get max input stream
+        %result = MAX INPUT STREAM
+    %end
+
+    !--------------------------------------------------------------------------
+    %external %integer %function get max output stream
+        %result = MAX OUTPUT STREAM
+    %end
+
+    !--------------------------------------------------------------------------
     ! This converts an IMP string in-situ to become a C string
     ! We just need the address of the IMP string
     %routine imptocstring( %string(*) %name impstring )
@@ -879,97 +889,5 @@ debugnewline
         initialised state = uninitialised
     %end
 
-    !--------------------------------------------------------------------------
-    %routine parse input list( %string(255) list )
-        %string(255) x,a,c,mode,file
-        %integer streamid
-
-        x = list
-        streamid = 1
-        %while length(x) > 0 %cycle
-
-            %exit %unless (1 <= streamid <= MAX INPUT STREAM)
-
-            ! split the comma separated list
-            length(a) = 0
-            length(c) = 0
-            x->a.(",").c
-
-            %exit %unless length(a) > 0
-
-            file = a
-            length(mode) = 0
-            %if (charno(a,length(a)) = 'b') %and (charno(a,length(a) - 1 ) = ':') %start
-                length(file) = length(file) - 2
-                mode = ":b"
-            %finish
-
-            %exit %unless length( file ) > 0
-
-            %if length(mode) = 0 %start
-                open input( streamid, file )
-            %finish %else %start
-                open binary input( streamid, file )
-            %finish
-                
-            x = c
-            streamid = streamid + 1
-        %repeat
-    %end
-
-    !--------------------------------------------------------------------------
-    %routine parse output list( %string(255) list )
-        %string(255) x,a,c,mode,file
-        %integer streamid
-
-        x = list
-        streamid = 1
-        %while length(x) > 0 %cycle
-
-            %exit %unless (1 <= streamid <= MAX OUTPUT STREAM)
-
-            ! split the comma separated list
-            length(a) = 0
-            length(c) = 0
-            x->a.(",").c
-
-            %exit %unless length(a) > 0
-
-            file = a
-            length(mode) = 0
-            %if (charno(a,length(a)) = 'b') %and (charno(a,length(a) - 1 ) = ':') %start
-                length(file) = length(file) - 2
-                mode = ":b"
-            %finish
-
-            %exit %unless length( file ) > 0
-
-            %if length(mode) = 0 %start
-                open output( streamid, file )
-            %finish %else %start
-                open binary output( streamid, file )
-            %finish
-                
-            x = c
-            streamid = streamid + 1
-        %repeat
-    %end
-
-    !--------------------------------------------------------------------------
-    %external %integer %function split io list ( %string(255) io list )
-        %string(255) s,a,b,c
-
-        s = io list
-        length(a) = 0
-        b = tostring(FILE SEP)
-        length(c) = 0
-
-        s -> a.(b).c
-
-        %if length( a ) > 0 %then parse input list( a )
-        %if length( c ) > 0 %then parse output list( c )
-
-        %result = 0
-    %end
 
 %endoffile

@@ -36,10 +36,10 @@
 !   * Enabled machine code to be embedded (NO floating point implemented)
 !
 ! Version 1.03 - October 2003
-!	* Properly cleaned up GP TAG list at end of a block
-!	* Tidied up some constant tables with names
+!   * Properly cleaned up GP TAG list at end of a block
+!   * Tidied up some constant tables with names
 !     (a hangover from the SKIMP version)
-!	* Corrected ISWORK to only be true for full-size string work blocks
+!   * Corrected ISWORK to only be true for full-size string work blocks
 
 %begin
 
@@ -82,44 +82,44 @@
 
     ! REGISTERS - basic register number = actual value + 1
     ! 32-bit registers
-    %constinteger  EAX = 1
-    %constinteger  ECX = 2
-    %constinteger  EDX = 3
-    %constinteger  EBX = 4
-    %constinteger  ESP = 5
-    %constinteger  EBP = 6
-    %constinteger  ESI = 7
-    %constinteger  EDI = 8
+    %constinteger   EAX = 1
+    %constinteger   ECX = 2
+    %constinteger   EDX = 3
+    %constinteger   EBX = 4
+    %constinteger   ESP = 5
+    %constinteger   EBP = 6
+    %constinteger   ESI = 7
+    %constinteger   EDI = 8
 
     ! Floating point coprocessor stack registers
-    %constinteger  FR0	= 9
-    %constinteger  FR1	= 10
-    %constinteger  FR2	= 11
-    %constinteger  FR3	= 12
-    %constinteger  FR4	= 13
-    %constinteger  FR5	= 14
-    %constinteger  FR6	= 15
-    %constinteger  FR7	= 16
+    %constinteger   FR0 = 9
+    %constinteger   FR1 = 10
+    %constinteger   FR2 = 11
+    %constinteger   FR3 = 12
+    %constinteger   FR4 = 13
+    %constinteger   FR5 = 14
+    %constinteger   FR6 = 15
+    %constinteger   FR7 = 16
 
     ! 8 bit registers - actual value + 17
-    %constinteger	AL	= 17
-    %constinteger	CL	= 18
-    %constinteger	DL	= 19
-    %constinteger	BL	= 20
-    %constinteger	AH	= 21
-    %constinteger	CH	= 22
-    %constinteger	DH	= 23
-    %constinteger	BH	= 24
+    %constinteger   AL  = 17
+    %constinteger   CL  = 18
+    %constinteger   DL  = 19
+    %constinteger   BL  = 20
+    %constinteger   AH  = 21
+    %constinteger   CH  = 22
+    %constinteger   DH  = 23
+    %constinteger   BH  = 24
 
     ! 16-bit registers
-    %constinteger  AX = 25
-    %constinteger  CX = 26
-    %constinteger  DX = 27
-    %constinteger  BX = 28
-    %constinteger  SP = 29
-    %constinteger  BP = 30
-    %constinteger  SI = 31
-    %constinteger  DI = 32
+    %constinteger   AX  = 25
+    %constinteger   CX  = 26
+    %constinteger   DX  = 27
+    %constinteger   BX  = 28
+    %constinteger   SP  = 29
+    %constinteger   BP  = 30
+    %constinteger   SI  = 31
+    %constinteger   DI  = 32
 
     ! Pseudo Registers
     %constinteger  any   = 33 { Truly any register }
@@ -222,11 +222,11 @@
 
 {Procedure end codes}
 
-	%constinteger	Map     = -2,
-					Fn      = -1, { negative value implies stacked result }
-					Routine =  0,
-					True    =  1,
-					False   =  2
+    %constinteger   Map     = -2,
+                    Fn      = -1, { negative value implies stacked result }
+                    Routine =  0,
+                    True    =  1,
+                    False   =  2
 
     ! PERM ROUTINE INDEXES
     %constinteger  iexp   =  1 { Integer Exponent                    }
@@ -317,7 +317,7 @@
     ! opcode indexes...
 
     ! simple (no operand) ones first
-    %constinteger NOP	= 0
+    %constinteger NOP   = 0
     %constinteger CWD   = 1
     %constinteger RET   = 2
     %constinteger SAHF  = 3
@@ -371,44 +371,44 @@
     ! Floating point instructions - note that these map directly onto
     ! 8087 sequences, unlike the generic MOV, ADD style of the base
     ! operations for the 8086
-    %constinteger	FILD	= 39
-    %constinteger	FLDD	= 40
-    %constinteger	FLDQ	= 41
-    %constinteger	FSTI	= 42
-    %constinteger	FSTD	= 43
-    %constinteger	FSTQ	= 44
-    %constinteger	FADD	= 45
-    %constinteger	FSUB	= 46
-    %constinteger	FSUBR	= 47
-    %constinteger	FMUL	= 48
-    %constinteger	FDIV	= 49
-    %constinteger	FDIVR	= 50
-    %constinteger	FCMP	= 51
-    %constinteger	FCHS	= 52
-    %constinteger	FABS	= 53
+    %constinteger   FILD    = 39
+    %constinteger   FLDD    = 40
+    %constinteger   FLDQ    = 41
+    %constinteger   FSTI    = 42
+    %constinteger   FSTD    = 43
+    %constinteger   FSTQ    = 44
+    %constinteger   FADD    = 45
+    %constinteger   FSUB    = 46
+    %constinteger   FSUBR   = 47
+    %constinteger   FMUL    = 48
+    %constinteger   FDIV    = 49
+    %constinteger   FDIVR   = 50
+    %constinteger   FCMP    = 51
+    %constinteger   FCHS    = 52
+    %constinteger   FABS    = 53
     ! Special floating point things
-    %constinteger	FSTSW	= 54
-    %constinteger	FLDZ	= 55
-    %constinteger	FLDPI	= 56
+    %constinteger   FSTSW   = 54
+    %constinteger   FLDZ    = 55
+    %constinteger   FLDPI   = 56
 
     ! modifiers to memory base for accessing global memory
-    %constinteger	DATA	= 16_10
-    %constinteger	COT		= 16_20
-    %constinteger	BSS		= 16_30
-    %constinteger	DISPLAY	= 16_40
-    %constinteger	EXT		= 16_50
-    %constinteger	SWT		= 16_60
-    %constinteger	CODE	= 16_70
+    %constinteger   DATA    = 16_10
+    %constinteger   COT     = 16_20
+    %constinteger   BSS     = 16_30
+    %constinteger   DISPLAY = 16_40
+    %constinteger   EXT     = 16_50
+    %constinteger   SWT     = 16_60
+    %constinteger   CODE    = 16_70
 
     ! opcodes
     %const %string(5) %array opname(NOP:JMP) =
-	  "NOP",   "CWD",   "RET",  "SAHF",  "LAHF", "LEAVE",
-	  "DEC",   "INC",   "NEG",   "NOT",
-	  "POP",  "PUSH",
-	  "LEA",   "MOV",  "XCHG", "MOVSX",
-	  "ADC",   "ADD",   "AND",   "CMP",    "OR",   "SUB",   "XOR",
-	  "SHL",   "SHR",  "IDIV",  "IMUL",
-	 "CALL",    "JE",   "JNE",
+      "NOP",   "CWD",   "RET",  "SAHF",  "LAHF", "LEAVE",
+      "DEC",   "INC",   "NEG",   "NOT",
+      "POP",  "PUSH",
+      "LEA",   "MOV",  "XCHG", "MOVSX",
+      "ADC",   "ADD",   "AND",   "CMP",    "OR",   "SUB",   "XOR",
+      "SHL",   "SHR",  "IDIV",  "IMUL",
+     "CALL",    "JE",   "JNE",
        "JG",   "JGE",    "JL",   "JLE",
        "JA",   "JAE",    "JB",   "JBE",   "JMP"
 
@@ -434,93 +434,93 @@
          -1,    -1,    -1,    -1,   JMP
 
     %const %byte %integer %array opvalue(NOP:JMP) =
-	16_90, 16_99, 16_C3, 16_9E, 16_9F, 16_C9,
-	16_FF, 16_FF, 16_F7, 16_F7,
-	16_8F, 16_FF,
-	16_8B, 16_89, 16_87, 16_BF,		{ LEA is fudged as if it were m <- r, to allow the flip }
-	16_11, 16_01, 16_21, 16_39, 16_09, 16_29, 16_31,
-	16_D1, 16_D1, 16_F7, 16_F7,
-	16_E8, 16_74, 16_75,
+    16_90, 16_99, 16_C3, 16_9E, 16_9F, 16_C9,
+    16_FF, 16_FF, 16_F7, 16_F7,
+    16_8F, 16_FF,
+    16_8B, 16_89, 16_87, 16_BF,     { LEA is fudged as if it were m <- r, to allow the flip }
+    16_11, 16_01, 16_21, 16_39, 16_09, 16_29, 16_31,
+    16_D1, 16_D1, 16_F7, 16_F7,
+    16_E8, 16_74, 16_75,
     16_7F, 16_7D, 16_7C, 16_7E,
     16_77, 16_73, 16_72, 16_76, 16_EB
 
     ! 8 bit equivalent opcodes
     ! Some are not actually 8 bit, but are added for completenes }
     %const %byte %integer %array op8value(NOP:JMP) =
-	16_90, 16_99, 16_C3, 16_9E, 16_9F, 16_C9, { included for completeness }
-	16_FE, 16_FE, 16_F6, 16_F6,
-	16_8F, 16_FF,                           { included for completeness }
-	16_8B, 16_88, 16_86, 16_BE,             { LEA is not applicable for 8 bit }
-	16_10, 16_00, 16_20, 16_38, 16_08, 16_28, 16_30,
-	16_D0, 16_D0, 16_F6, 16_F6,
-	16_E8, 16_74, 16_75,
+    16_90, 16_99, 16_C3, 16_9E, 16_9F, 16_C9, { included for completeness }
+    16_FE, 16_FE, 16_F6, 16_F6,
+    16_8F, 16_FF,                           { included for completeness }
+    16_8B, 16_88, 16_86, 16_BE,             { LEA is not applicable for 8 bit }
+    16_10, 16_00, 16_20, 16_38, 16_08, 16_28, 16_30,
+    16_D0, 16_D0, 16_F6, 16_F6,
+    16_E8, 16_74, 16_75,
     16_7F, 16_7D, 16_7C, 16_7E,
     16_77, 16_73, 16_72, 16_76, 16_EB  { included for completeness }
 
     %const %byte %integer %array aximmediatevalue(NOP:XOR) =
     0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0,
-	0, 0,
-	0, 16_B8, 0,  0,
-	16_15, 16_05, 16_25, 16_3D, 16_0D, 16_2D, 16_35
+    0, 0, 0, 0,
+    0, 0,
+    0, 16_B8, 0,  0,
+    16_15, 16_05, 16_25, 16_3D, 16_0D, 16_2D, 16_35
 
-	{Condition codes}
+    {Condition codes}
 
-	{ The "Never" test should never! be used. The others are all used } 
-	%constinteger	Never  = 0,
+    { The "Never" test should never! be used. The others are all used } 
+    %constinteger   Never  = 0,
                     EQ     = 1,
                     LT     = 2,
                     LE     = 3,
                     GT     = 4,
                     GE     = 5,
-					NE     = 6,
+                    NE     = 6,
                     Always = 7,
                     TT     = 8,
                     FF     = 9
-	%constbytearray Reverse(Never:FF) =	Never  {Never},
-										EQ     {EQ},
-										GT     {LT},
-										GE     {LE},
-										LT     {GT},
-										LE     {GE},
-										NE     {NE},
-										Always {Always},
-										TT     {TT},
-										FF     {FF}
-	%constbytearray Negated(Never:FF) =	Always {Never},
-										NE     {EQ},
-										GE     {LT},
-										GT     {LE},
-										LE     {GT},
-										LT     {GE},
-										EQ     {NE},
-										Never  {Always},
-										FF     {TT},
-										TT     {FF}
+    %constbytearray Reverse(Never:FF) = Never  {Never},
+                                        EQ     {EQ},
+                                        GT     {LT},
+                                        GE     {LE},
+                                        LT     {GT},
+                                        LE     {GE},
+                                        NE     {NE},
+                                        Always {Always},
+                                        TT     {TT},
+                                        FF     {FF}
+    %constbytearray Negated(Never:FF) = Always {Never},
+                                        NE     {EQ},
+                                        GE     {LT},
+                                        GT     {LE},
+                                        LE     {GT},
+                                        LT     {GE},
+                                        EQ     {NE},
+                                        Never  {Always},
+                                        FF     {TT},
+                                        TT     {FF}
 
     {Never - This is added for completeness}
-    %constbytearray TestToOp(Never:FF) =	JMP {Never},
-											JE  {EQ},
-											JL  {LT},
-											JLE {LE},
-											JG  {GT},
-											JGE {GE},
-											JNE {NE},
-											JMP {Always},
-											JNE {TT},
-											JE  {FF}
+    %constbytearray TestToOp(Never:FF) =    JMP {Never},
+                                            JE  {EQ},
+                                            JL  {LT},
+                                            JLE {LE},
+                                            JG  {GT},
+                                            JGE {GE},
+                                            JNE {NE},
+                                            JMP {Always},
+                                            JNE {TT},
+                                            JE  {FF}
 
     {Never - This is added for completeness}
-    %constbytearray TestToUnsignedOp(Never:FF) =	JMP {Never},
-													JE  {EQ},
-													JB  {LT},
-													JBE {LE},
-													JA  {GT},
-													JAE {GE},
-													JNE {NE},
-													JMP {Always},
-													JNE {TT},
-													JE  {FF}
+    %constbytearray TestToUnsignedOp(Never:FF) =    JMP {Never},
+                                                    JE  {EQ},
+                                                    JB  {LT},
+                                                    JBE {LE},
+                                                    JA  {GT},
+                                                    JAE {GE},
+                                                    JNE {NE},
+                                                    JMP {Always},
+                                                    JNE {TT},
+                                                    JE  {FF}
 
     ! JDM JDM debug count of iCode instructions
     %integer icodeCount = 0
@@ -586,8 +586,8 @@
     ! Current diagnostic flags (set by %diagnose statement)
     %owninteger diagnose = 0
 
-   ! Special directive flags for languages (other than standard imp)
-	%owninteger Language Flags = 0
+    ! Special directive flags for languages (other than standard imp)
+    %owninteger Language Flags = 0
 
     ! notional code address (not real - pass3 shuffles stuff)
     %owninteger nextcad = 0
@@ -649,9 +649,9 @@
     ! pointer to next switch segment entry
     %owninteger swtp = 0
 
-    %ownstring(255)  external id = "",
-	                 alias = "",
-					 block name = ""
+    %ownstring(255) external id = "",
+                    alias       = "",
+                    block name  = ""
 
     ! current string literal
     %byteintegerarray  current string(0:255)
@@ -687,25 +687,30 @@
         printstring( getiCodeName(iCodeInst) )
     %end
 
+    %routine ListICodeLine
+        ListICode
+        newline
+    %end
+
     !-----------------------------------------------------------
     ! end of "enumeration to String/name functions
     !-----------------------------------------------------------
 
     ! Moved declarations so they can be used by debug routines
     %const %string(4) %array reg32name(EAX:EDI) =
-	"%EAX", "%ECX", "%EDX", "%EBX", "%ESP", "%EBP", "%ESI", "%EDI"
+    "%EAX", "%ECX", "%EDX", "%EBX", "%ESP", "%EBP", "%ESI", "%EDI"
 
     %const %string(4) %array reg16name(AX:DI) =
-	"%AX", "%CX", "%DX", "%BX", "%SP", "%BP", "%SI", "%DI"
+    "%AX", "%CX", "%DX", "%BX", "%SP", "%BP", "%SI", "%DI"
 
     %const %string(4) %array reg8name(AL:BH) =
-	"%AL", "%CL", "%DL", "%BL", "%AH", "%CH", "%DH", "%BH"
+    "%AL", "%CL", "%DL", "%BL", "%AH", "%CH", "%DH", "%BH"
 
     %const %string(4) %array regfloatname(FR0:FR7) =
-	"%FR0", "%FR1", "%FR2", "%FR3", "%FR4", "%FR5", "%FR6", "%FR7"
+    "%FR0", "%FR1", "%FR2", "%FR3", "%FR4", "%FR5", "%FR6", "%FR7"
 
     %const %string(7) %array relocname(0:6) =
-	"", "DATA", "COT", "BSS", "DISPLAY", "EXTERN", "SWTAB"
+    "", "DATA", "COT", "BSS", "DISPLAY", "EXTERN", "SWTAB"
 
     %string(4) %function reg as name( %integer n )
         %string(4) t
@@ -863,7 +868,7 @@
         newline
         %if (stp # 0) %start
             print string("STACK:");  newline
-            printstring("  StackId  VarNo :           Typ        Frm Bse  Dsp  ExtDsp  Siz  Xtr  Fmt  Dim  Pba Name" ); newline
+            printstring("  StackId  VarNo :           Typ        Frm Bse      Dsp  ExtDsp  Siz  Xtr  Fmt  Dim  Pba Name" ); newline
             %for j = 1,1,stp %cycle
                 spaces(1); printstring(itos(j,7))
                 show(stack(j))
@@ -875,16 +880,18 @@
     !                                                  >> WARN <<
     %routine  warn(%integer  n)
         %string(255) warning
-        %switch  w(1:8)
+        %switch  w(1:10)
         -> w(n)
-w(1):   warning = "Division by zero";                  -> at
-w(2):   warning = "Illegal FOR";                       -> at
-w(3):   warning = "Non-local control variable?";       -> at
-w(4):   warning = "Invalid parameter for READ SYMBOL"; -> at
-w(5):   warning = "String constant too long";          -> at
-w(6):   warning = "No. of shifts outwith 0..31";       -> at
-w(7):   warning = "Illegal constant exponent";         -> at
-w(8):   warning = "Numerical constant too big";        -> at
+w(1):   warning = "Division by zero";                   -> at
+w(2):   warning = "Illegal FOR";                        -> at
+w(3):   warning = "Non-local control variable?";        -> at
+w(4):   warning = "Invalid parameter for READ SYMBOL";  -> at
+w(5):   warning = "String constant too long";           -> at
+w(6):   warning = "No. of shifts outwith 0..31";        -> at
+w(7):   warning = "Illegal constant exponent";          -> at
+w(8):   warning = "Byte numerical constant too big";    -> at
+w(9):   warning = "Short numerical constant too big";   -> at
+w(10):  warning = "Integer numerical constant too big"; -> at
 at:
         select output(report)
         print string("*WARNING: line")
@@ -942,7 +949,7 @@ at:
     ! Add corresponding bytes for the listing
     !    (not always the same for fudged opcodes)
     %own %integer listptr = 0
-	%const %integer lstbufmax = 11
+    %const %integer lstbufmax = 11
     %own %byte %integer %array listbytes(0:lstbufmax)
 
     ! Routine to provide the address and hex opcode listing in the
@@ -996,18 +1003,18 @@ at:
     !       - putcodetag
     !     instead of the putbyte routine
     %routine putbyte(%integer b)
-		putlistbyte( b )
-		putcodebyte( b )
+        putlistbyte( b )
+        putcodebyte( b )
     %end
 
     %routine putword(%integer b)
-		putlistword( b )
-		putcodeword( b )
+        putlistword( b )
+        putcodeword( b )
     %end
 
     %routine putlong(%integer b)
-		putlistlong( b )
-		putcodelong( b )
+        putlistlong( b )
+        putcodelong( b )
     %end
 
     ! A very handy little boolean function, used for instructions
@@ -1059,13 +1066,13 @@ at:
 
     ! tags corresponding to linker directives...
     %const %integer %array reltag(0:6) =
-    0,			{ no relocation }
-	IF DATA,    { dataseg offset code word }
-	IF CONST,   { const seg offset code word }
-	IF BSS,		{ BSS relative code word }
-	IF DISPLAY,	{ display seg offset code word }
-	IF ABSEXT, 	{ external name absolute offset code word }
-	IF SWT		{ switch table offset code word }
+    0,          { no relocation }
+    IF DATA,    { dataseg offset code word }
+    IF CONST,   { const seg offset code word }
+    IF BSS,     { BSS relative code word }
+    IF DISPLAY, { display seg offset code word }
+    IF ABSEXT,  { external name absolute offset code word }
+    IF SWT      { switch table offset code word }
 
     ! plant code for a relocated (DATA/BSS/DISPLAY/EXTERNAL) code word
     %routine relocateoffset( %integer reloc, offset, extdisp )
@@ -1078,9 +1085,9 @@ at:
             ! so that only the offset is going into the queue
             writeifrecord(IF OBJ)
 
-			tag = reltag(reloc)
-			
-			%if (tag = IF ABSEXT) %start
+            tag = reltag(reloc)
+
+            %if (tag = IF ABSEXT) %start
                 ! JDM JDM - extdisp now placed before offset
                 ! list extdisp byte 0,1
                 putword(extdisp)
@@ -1090,14 +1097,14 @@ at:
                 putword(offset - extdisp)
 
                 writeifrecord(IF ABSEXT)
-			%else
+            %else
                 ! offset byte 0,1,2,3
                 putlong(offset)
 
-				writeifrecord(tag)
-			%finish
+                writeifrecord(tag)
+            %finish
 
-		%finish
+        %finish
 
     %end
 
@@ -1129,7 +1136,9 @@ at:
             ! the offset is relocatable
             %if (reloc # 0) %then mod = 2
 
-            %if (base > EDI) %or (base = ESP) %start
+!JDM JDM
+!           %if (base > EDI) %or (base = ESP) %start
+            %if (base > EDI) %start
                 abort("Internal address mode error")
             %finish
 
@@ -1142,6 +1151,12 @@ at:
             %finish %else %if (mod = 2) %start
                 relocateoffset(reloc, disp, extdisp )
             %finish
+
+!JDM JDM
+            %if (base = ESP) %start
+                putbyte(((base -1 )<<3)!(base - 1))
+            %finish
+!JDM JDM
         %finish
     %end
 
@@ -1279,7 +1294,7 @@ ops(DEC):   putbyte(16_FE); modrmmem(1, base, disp, extdisp);  ->break
 ops(INC):   putbyte(16_FE); modrmmem(0, base, disp, extdisp);  ->break
 ops(NEG):   putbyte(16_F6); modrmmem(3, base, disp, extdisp);  ->break
 ops(NOT):   putbyte(16_F6); modrmmem(2, base, disp, extdisp);  ->break
-ops(*):     Abort("Invalid UM8")
+ops( * ):   Abort("Invalid UM8")
 break:
 
         listpreamble
@@ -1302,7 +1317,7 @@ break:
 ops(SHL):   { special "shift by CL" }
             putbyte(16_D3);        modrmmem(4, base, disp, extdisp);           ->break
 ops(SHR):   putbyte(16_D3);        modrmmem(5, base, disp, extdisp);           ->break
-ops(*):     { normal stuff }
+ops( * ):   { normal stuff }
             putbyte(opvalue(opn)); modrmmem(reg - EAX, base, disp, extdisp );  ->break
 break:
 
@@ -1327,7 +1342,7 @@ break:
 ops(SHL):   { special "shift by CL" }
             putbyte(16_D2);         modrmmem(4, base, disp, extdisp);          ->break
 ops(SHR):   putbyte(16_D2);         modrmmem(5, base, disp, extdisp);          ->break
-ops(*):     { normal stuff }
+ops( * ):   { normal stuff }
             putbyte(op8value(opn)); modrmmem(reg - AL, base, disp, extdisp );  ->break
 break:
 
@@ -1409,7 +1424,7 @@ break:
 ops(SHL):   { special "shift by CL" }
             putbyte(16_D3);        modrmreg(4, reg1 - EAX);          ->break
 ops(SHR):   putbyte(16_D3);        modrmreg(5, reg1 - EAX);          ->break
-ops(*):     { normal stuff }
+ops( * ):   { normal stuff }
             putbyte(opvalue(opn)); modrmreg(reg2 - EAX, reg1 - EAX); ->break
 break:
 
@@ -1435,7 +1450,7 @@ break:
 
 ops(MOVSX): putbyte(16_0F); ! MOVSX requires a prefix
             putbyte(opvalue(opn)); modrmreg(reg2 - AX, reg1 - EAX); ->break
-ops(*):     { unexpected operation }                                ->done
+ops( * ):   { unexpected operation }                                ->done
 break:
 
         listpreamble
@@ -1459,7 +1474,7 @@ done:
 ops(SHL):   { special "shift by CL" }
             putbyte(16_D2);         modrmreg(4, reg1 - AL);         ->break
 ops(SHR):   putbyte(16_D2);         modrmreg(5, reg1 - AL);         ->break
-ops(*):     { normal stuff }
+ops( * ):   { normal stuff }
             putbyte(op8value(opn)); modrmreg(reg2 - AL, reg1 - AL); ->break
 break:
 
@@ -1866,7 +1881,7 @@ break:
         %integer subop
         %switch ops(MOV:SHR)
 
-		->ops(opn)
+        ->ops(opn)
 
 ops(MOV):
         subop = 0
@@ -1964,7 +1979,7 @@ break:
 form(V in R):   dumprr(opn, reg, v_base);                             -> esac
 form(V in S):   dumprm(opn, reg, v_base!v_scope, v_disp, v_extdisp ); -> esac
 form(constant): dumprioffset(opn, reg, v_scope, v_disp, v_extdisp );  -> esac
-form(*):        abort("Address Mode")
+form( * ):      abort("Bad Address Mode-dumprv")
 esac:
     %end
 
@@ -1979,7 +1994,7 @@ esac:
 form(V in R):   dumprr8(opn, reg, v_base);                            -> esac
 form(V in S):   dumprm8(opn, reg, v_base!v_scope, v_disp, v_extdisp ); -> esac
 form(constant): dumprioffset(opn, reg, v_scope, v_disp, v_extdisp );  -> esac
-form(*):        abort("Address Mode")
+form( * ):      abort("Bad Address Mode-dumpr8v")
 esac:
     %end
     ! Another special dumper - the only "Unary" operation that
@@ -2018,7 +2033,7 @@ esac:
 form(V in R):   dumpur(PUSH, v_base);                             -> esac
 form(V in S):   dumpum(PUSH, v_base!v_scope, v_disp, v_extdisp ); -> esac
 form(constant): dumppushi(v_scope, v_disp, v_extdisp );           -> esac
-form(*):        abort("Push Mode")
+form( * ):      abort("Bad Push Mode-dumpvpush")
 esac:
     %end
       
@@ -2176,11 +2191,11 @@ esac:
         ! End listing pseudo-code
 
         ! Start actual instruction code
-		! Now for the actual code to be added to the instruction pipe.
+        ! Now for the actual code to be added to the instruction pipe.
         ! We instead load the instruction pipe with an IBJ symbol directive
         %if (opn = JMP) %start
-			putcodetag( labelid )
-			writeifrecord(IF JUMP)
+            putcodetag( labelid )
+            writeifrecord(IF JUMP)
         %finish %else %if (opn = CALL) %start
 ! JDM JDM replaced use of IF CALL command by IF REFLABEL command
 ! old code retained Just-in-case
@@ -2270,7 +2285,7 @@ esac:
         printstring("  EQU $")
         newline
 
-		putcodetag( labelid )
+        putcodetag( labelid )
         writeifrecord(IF LABEL)
 
         displayhint(EBX) = 0
@@ -2293,8 +2308,8 @@ esac:
         newline
 
         ! but we actually plant a special pass 2 directive (IF FIXUP)
-		putcodetag( which )
-		putcodebyte( level )
+        putcodetag( which )
+        putcodebyte( level )
         ! we also pass the (truncated) name of the routine
         !  - for pass3 diagnostic use
         ! Size limit of 16 due to symbol name constraint
@@ -2338,27 +2353,22 @@ esac:
         writeifrecord(IF SETFIX)
     %end
 
-    ! dump words for the constant segment or the data segment
+    ! dump words for the constant segment or the switch segment
     ! Adjusts CAD so that the diagnostic listing looks sensible
-    %routine dumpcdword( %integer word, which )
+    %routine dumpcsword( %integer word, which )
         %integer tag, tmpcad, hi, lo
         %owninteger cptr = 0
-        %owninteger dptr = 0
         %owninteger sptr = 0
 
         tmpcad = next cad
-        %if (which = 2) %start
+        %if (which = IF SWTWORD) %start
             tag = IF SWTWORD
             next cad = sptr
             sptr = sptr + 2
-        %finish %else %if (which = 1) %start
+        %finish %else %if (which = IF COTWORD) %start
             tag = IF COTWORD
             next cad = cptr
             cptr = cptr + 2
-        %finish %else %start
-            tag = IF DATWORD
-            next cad = dptr
-            dptr = dptr + 2
         %finish
 
         putcodeword(word)
@@ -2376,6 +2386,43 @@ esac:
         newline
 
         writeifrecord(tag)
+
+        ! restore the real CAD
+        nextcad = tmp cad
+    %end
+
+    ! dump words for the data segment
+    ! Adjusts CAD so that the diagnostic listing looks sensible
+    %routine dumpdatword( %integer word, %integer count )
+        %integer tmpcad, hi, lo
+        %owninteger dptr = 0
+
+        tmpcad = next cad
+        next cad = dptr
+        dptr = dptr + 2*count
+
+        ! populate the DATWORD record
+        putcodeword(word)
+        putcodeword(count)
+
+        writeifrecord(IF DATWORD)
+
+        ! now populate the code listing
+        hi = word >> 8
+        lo = word&255
+        listpreamble
+        %if (count = 1) %start
+            printstring("db ")
+        %finish %else %start
+            printstring("blk(".itos(count,0).") ")
+        %finish
+        writehex(lo, 2)
+        printsymbol(',')
+        writehex(hi, 2)
+        printstring(" ; ")
+        %if (32 < lo < 127) %then printsymbol(lo) %else printsymbol('.')
+        %if (32 < hi < 127) %then printsymbol(hi) %else printsymbol('.')
+        newline
 
         ! restore the real CAD
         nextcad = tmp cad
@@ -2460,7 +2507,7 @@ esac:
 
         i = 0
         %while i < cotp %cycle
-            dumpcdword((contable(i+1) << 8) ! contable(i), 1)
+            dumpcsword( (contable(i+1) << 8) ! contable(i), IF COTWORD )
             i = i + 2
         %repeat
 
@@ -2533,7 +2580,7 @@ esac:
 
         i = 0
         %while (i < cotp-7) %cycle
-            %if      (contable(i)   = byteinteger(addr(double)))   %c
+            %if      (contable(i+0) = byteinteger(addr(double)+0)) %c
                 %and (contable(i+1) = byteinteger(addr(double)+1)) %c
                 %and (contable(i+2) = byteinteger(addr(double)+2)) %c
                 %and (contable(i+3) = byteinteger(addr(double)+3)) %c
@@ -2559,7 +2606,7 @@ esac:
         %result = (cotp - 8) + cotoffset
     %end
 
-    ! return the offset in the const segment of a quad word
+    ! return the offset in the const segment of a quad word (==4*32 bits)
     ! with value q0:q1:q2:q3 (lo to hi)
     %integerfn getcot4(%integer q0, q1, q2, q3)
         %integer i, cw0, cw1, cw2, cw3
@@ -2639,7 +2686,7 @@ esac:
     %integerfn getcots( %byteintegerarrayname b )
         %integer i, first, slen, match
 
-		slen = b(0)
+        slen = b(0)
 
         ! We optimise the Null String "" in comparisons, so we remember
         ! the location here
@@ -2654,12 +2701,12 @@ esac:
         %while (first + slen < cotp) %cycle
             ! so long as there are that many bytes left
             match = 1
-			! Simple check of string lengths
+            ! Simple check of string lengths
             %if (slen # contable(first)) %start
                 match = 0
                 %exit
             %finish
-			! ok, so lengths match but do the contents
+            ! ok, so lengths match but do the contents
             %for i = 1, 1, slen %cycle
                 %if (b(i) # contable(first + i)) %start
                     match = 0
@@ -2673,15 +2720,15 @@ esac:
         %repeat
 
         ! if we get here, it wasn't already in the constant table
-		! Ok, so will we overflow the buffer
+        ! Ok, so will we overflow the buffer
         %if (cotp + slen + 1) >= cotsize %then flushcot
 
-		! dump the string length
+        ! dump the string length
         first = cotp
         contable(cotp) = slen
         cotp = cotp + 1
-		! Now, dump the string contents
-		%for i = 1,1,slen %cycle
+        ! Now, dump the string contents
+        %for i = 1,1,slen %cycle
             contable(cotp) = b(i)
             cotp = cotp + 1
         %repeat
@@ -2717,6 +2764,7 @@ esac:
     ! Flush the accumulated data table
     %routine flush data
         %integer i, limit
+        %integer v1,v2,count
 
         ! We output a position hint to the diagnostic stream
 
@@ -2728,11 +2776,38 @@ esac:
 
         i = 0
         limit = datatp - datat offset
+        count = 0
         %while i < limit %cycle
-            ! JDM JDM DANGER ! in line below is a Bitwise OR not a comment
-            dumpcdword((datat(i+1) << 8) ! datat(i), 0)
+!            ! JDM JDM DANGER ! in line below is a Bitwise OR not a comment
+!            dumpdatword(( datat(i+1) << 8) ! datat(i), 1 )
+
+            ! remember the current datword
+            v2 = ( datat(i+1) << 8) ! datat(i)
+            %if (count = 0) %start
+                ! empty count so remember the current dataword in v1 buffer
+                ! and start the count
+                v1 = v2
+                count = 1
+            %finish %else %if (v1 = v2) %start
+                ! we have a repeated datword
+                ! so increment the buffer count
+                count = count + 1
+            %finish %else %start
+                ! end of the current repeated datword
+                ! so output the repeated datword sequence
+                dumpdatword( v1, count )
+                ! start a new datword sequence
+                ! remember the datword and start a new count
+                v1 = v2
+                count = 1
+            %finish
             i = i + 2;
         %repeat
+
+        ! Ensure we output any remaining datwords
+        %if (count > 0) %start
+            dumpdatword( v1, count )
+        %finish
 
         datat offset = datat p
 
@@ -2784,7 +2859,7 @@ esac:
         newline
         i = 0
         %while i < swtp %cycle
-            dumpcdword(swtab(i), 2)
+            dumpcsword(swtab(i), IF SWTWORD)
             i = i + 1
         %repeat
 
@@ -3240,18 +3315,6 @@ out1:
         %if (space # 0) %then dumpri( ADD, ESP, space * word size)
     %end
 
-    %routine Load Perm( %integer  n, space )
-
-        ! JDM JDM debug show the iCode instruction
-        %if (diagnose&16 # 0) %start
-            ListICode
-            newline
-        %finish
-        ! JDM JDM end debug
-
-        perm( n, space )
-    %end
-
     !                                                  >> ASSEMBLE <<
     ! AMODE:
     !  -3: initial call
@@ -3303,7 +3366,7 @@ out1:
 
         %integer j, t
         %integer dv
-
+       
         %routinespec   compile to string(%record(stackfm)%name v)
         ! JDM JDM change name from load()
         %routinespec   loadreg(%record(stackfm)%name v, %integer reg)
@@ -3315,20 +3378,6 @@ out1:
         %integerfnspec new tag
 
         ! Actual code for Assemble is down around label NEXT
-
-        %routine Load Language Flags( %integer flags )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                spaces(4)
-                printstring( itos(flags,0) )
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Language Flags = flags;
-        %end
 
         !                                              >> DEFINE VAR <<
         %routine  Define Var( %integer tag, %string(255) internal id, %integer tf, size, scope )
@@ -3342,7 +3391,6 @@ out1:
             ! The actual variable type, form, size values will be "tweaked" depending
             ! on the target machine
             set symbol data( tag, internal id, tf, size, scope )
-
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -3465,8 +3513,8 @@ out1:
             %finish
             alias = ""
 
-			! JDM JDM: Ensure the external displacement is zero
-			decvar_extdisp = 0
+            ! JDM JDM: Ensure the external displacement is zero
+            decvar_extdisp = 0
 
             %if (switch < form) %and (form < array) %start
                 ! PROCEDURE
@@ -3482,7 +3530,7 @@ out1:
                     %finish
                     decvar_disp = externalref(external id)
                     ! JDM JDM: Remember the base external displacement
-					decvar_extdisp = decvar_disp
+                    decvar_extdisp = decvar_disp
                     decvar_level = 0
                     decvar_scope = EXT
                     %return
@@ -3576,11 +3624,11 @@ out1:
                     decvar_level = 0
                     decvar_scope = EXT
                     decvar_disp = external ref(external id)
-					! JDM JDM:
+                    ! JDM JDM:
                     ! We have a reference to external data so note the external ref id
-					! inside the _extdisp field
-					! _extdisp will NEVER be modified unlike _disp
-					! Eventually it will be used when generating ABSEXT ibj records
+                    ! inside the _extdisp field
+                    ! _extdisp will NEVER be modified unlike _disp
+                    ! Eventually it will be used when generating ABSEXT ibj records
                     ! The difference between _disp and _extdisp represents the offset
                     ! from the location specified by _disp
                     ! offset == _extdisp - _disp
@@ -3690,7 +3738,7 @@ out1:
             top_dim = w_dim
             top_type = w_type
             top_disp = w_disp
-			top_extdisp = w_disp
+            top_extdisp = w_disp
             top_scope = w_scope
             top_format = w_format
             top_size = w_size
@@ -3716,7 +3764,7 @@ out1:
                 ListICode
                 spaces(4)
                 printsymbol( '"' )
-                printstring( get symbol name(varno) )
+                printstring( get symbol name(var no ) )
                 printsymbol( '"' )
                 newline
             %finish
@@ -3744,7 +3792,7 @@ out1:
             top == stack(stp)
             top = 0
             top_disp = n
-			top_extdisp = 0
+            top_extdisp = 0
             top_type = integer
             top_form = constant
             top_idname = itos(n,0)
@@ -3756,7 +3804,7 @@ out1:
         ! JDM JDM this is a wrapper to ensure when reading the iCode data
         ! the iCode data is listed only once.
         ! Why? because Push Const is used in many locations
-        %routine  Load Const(%integer  n)
+        %routine  Load Const(%integer n )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -3789,10 +3837,10 @@ out1:
             %finish
             ! JDM JDM end debug
 
-			current string(0)= length(s)
-			%for i = 1,1,length(s) %cycle
-				current string(i) = charno(s,i)
-			%repeat
+            current string(0)= length(s)
+            %for i = 1,1,length(s) %cycle
+                current string(i) = charno(s,i)
+            %repeat
 
             ! if this is about to be used as a literal, put it straight into
             ! the CONST segment and stack it, otherwise leave it in curr string to see
@@ -3801,35 +3849,18 @@ out1:
             %if (lookaheadiCode # iCodeINIT) %and (lookaheadiCode # iCodeDEF) %start
                 otype = con;        ! anonymous %const
                 push const( getcots(current string) );
-				top_type = string
+                top_type = string
                 top_base = 0;
-				top_scope = COT;
-				top_form = V in S;
-				top_format = current string(0)+1
+                top_scope = COT
+                top_form = V in S
+                top_format = current string(0)+1
             %else
                 ! explicit string initialisation coming next
                 push const(0)
             %finish
         %end
 
-		%routine Get Alias Value( %string(255) s )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                spaces(4)
-                printsymbol( '"' )
-                printstring( s )
-                printsymbol( '"' )
-                newline
-            %finish
-            ! JDM JDM end debug
-
-			alias = s
-
-		%end
-
-		%routine Input Real Value( %longreal r)
+        %routine Input Real Value( %longreal r )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -3840,23 +3871,35 @@ out1:
             %finish
             ! JDM JDM end debug
 
-			%if (r = 0) %then %start
-				push const(0)
-			%else
-				%if (lookaheadiCode # iCodeINIT) %then %start
-                    !  anonymous %const
-					otype = con
-					push const(0)
-					top_type = lreal
-					top_scope = COT
-                    !  N.B. ** %fn + side-effect **
-					top_disp = getcotdouble(r)
-					top_extdisp = 0
-					top_form = V in S
-				%finish
-			%finish
-			rvalue = r
-		%end
+            !  anonymous %const
+            ! So insert into/retrieve from the COT table
+            otype = con
+            push const( getcotdouble(r) )
+            top_type = lreal
+            top_scope = COT
+            top_form = V in S
+            top_format = 8
+
+!            %if (r = 0) %then %start
+!                push const(0)
+!            %else
+!                %if (lookaheadiCode # iCodeINIT) %then %start
+!                    !  anonymous %const
+!                    otype = con
+!!                    push const(0)
+!                    push const( getcotdouble(r) )
+!                    top_type = lreal
+!                    top_scope = COT
+!                    top_form = V in S
+!                    !  N.B. ** %fn + side-effect **
+!!                    top_disp = getcotdouble(r)
+!!                    top_extdisp = 0
+!!                    top_form = V in S
+!                %finish
+!            %finish
+
+            rvalue = r
+        %end
 
         !-------------------------------------------------------
         !LABEL PROCESSING
@@ -3953,8 +3996,8 @@ out1:
         %end
         ! jump to
 
-		%routine Jump Forward( %integer val, test )
-			%integer opr
+        %routine Jump Forward( %integer val, test )
+            %integer opr
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -3966,35 +4009,35 @@ out1:
             %finish
             ! JDM JDM end debug
 
-			! FF,TT tests need a value to compare
-			! TT == TRUE (#0)
-			! FF == FALSE (=0)
-			%if (Test = FF) %or (Test = TT) %then dumpri(CMP, EAX, 0)
-			! Get the required operator for the test
-			! We may need to amend the choice of operator
-			! depending on the invert/compare unsign "flags"
-			opr = TestToOp( test )
+            ! FF,TT tests need a value to compare
+            ! TT == TRUE (#0)
+            ! FF == FALSE (=0)
+            %if (Test = FF) %or (Test = TT) %then dumpri(CMP, EAX, 0)
+            ! Get the required operator for the test
+            ! We may need to amend the choice of operator
+            ! depending on the invert/compare unsign "flags"
+            opr = TestToOp( test )
 
-			%if (val = 0) %then %start
-				%if (last skip # next cad) %then %start
-					skip proc = new tag
-					dumpjump(opr, skip proc)
-				%finish
-			%else
-				! Check if we need to reverse the test
-				! So, re-choose the operator
-				%if (invert # 0) %then Test = Reverse( Test )
-				invert = 0;
+            %if (val = 0) %then %start
+                %if (last skip # next cad) %then %start
+                    skip proc = new tag
+                    dumpjump(opr, skip proc)
+                %finish
+            %else
+                ! Check if we need to reverse the test
+                ! So, re-choose the operator
+                %if (invert # 0) %then Test = Reverse( Test )
+                invert = 0;
 
-				! convert the operators to unsigned versions if needed
-				%if (compare unsign # 0) %then opr = TestToUnsignedOp( Test ) %else opr = TestToOp( Test )
-				compare unsign = 0
+                ! convert the operators to unsigned versions if needed
+                %if (compare unsign # 0) %then opr = TestToUnsignedOp( Test ) %else opr = TestToOp( Test )
+                compare unsign = 0
 
-				jump to(val, opr, 1)
-			%finish
-		%end;				! Jump Forward
+                jump to(val, opr, 1)
+            %finish
+        %end;               ! Jump Forward
 
-		%routine Jump Backward( %integer val )
+        %routine Jump Backward( %integer val )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -4006,8 +4049,8 @@ out1:
             %finish
             ! JDM JDM end debug
 
-			jump to(val, JMP, 0);
-		%end
+            jump to(val, JMP, 0);
+        %end
 
         !-------------------------------------------------------
         ! Stack variable transformations
@@ -4021,7 +4064,7 @@ out1:
             form = v_form - 3;         ! X in REC => X in S
             type = v_type
             disp = v_disp
-			extdisp = v_extdisp
+            extdisp = v_extdisp
             ! Here's a trick - we've got two displacements, DISP and EXTRA, but only
             ! one SCOPE hint.  Which does it belong to?  If the REC form came from
             ! a HAZARD then the scope belongs to the DISP, but for all other cases
@@ -4034,17 +4077,17 @@ out1:
             %else
                 scope = 0
             %finish
-            v_disp = v_extra;
-			v_type = integer;
-			v_form = v in s
+            v_disp = v_extra
+            v_type = integer
+            v_form = V in S
 
             loadreg(v, anyp)
 
-            v_type = type;
-			v_form = form
-            v_disp = disp;
-			v_extdisp = extdisp;
-			v_scope = scope
+            v_type = type
+            v_form = form
+            v_disp = disp
+            v_extdisp = extdisp
+            v_scope = scope
         %end
 
         !                                              >> AMAP <<
@@ -4154,266 +4197,271 @@ out1:
         ! Load variable V into register R
         ! Along the way any register the variable owned is released, and
         ! the new register is claimed.
-		%routine LoadReg(%record(stackfm)%name v, %integer r)
-			%switch f(0:9)
-			%integer ptr, op
+        %routine LoadReg(%record(stackfm)%name v, %integer r)
+            %switch f(0:9)
+            %integer ptr, op
 
-			monitor(v, "LOAD") %if (diagnose&2 # 0)
+            monitor(v, "LOAD") %if (diagnose&2 # 0)
 
-			%if (r = anyf) %start
-				! Equivalents for real numbers...
-				! because there's very little clever we can do, we first simplify somewhat...
-				Address(v)
-				! Now it's either Constant, V in R or V in S - we now turn them
-				! all into V in S - the only thing we can load
-				! Start with one we have no instructions for, and promote it to
-				! something we know how to handle...
-				%if (v_type = byte) %then loadreg(v, any)
-				%if (v_form = V in R) %start
-					%return %if (v_base >= FR0)
-					! This must be an integer in a CPU register - we need to store it
-					! before we can use it
-					v_disp = getwork(word size)
-					dumpmr(MOV, EBP, v_disp, v_extdisp, v_base)
-					release(v_base)
-					v_base = EBP
-					v_scope = 0
-					v_form = V in S
-					! Now it looks like an integer V in S
-				%finish
+            %if (r = anyf) %start
+                ! Equivalents for real numbers...
+                ! because there's very little clever we can do, we first simplify somewhat...
+                Address(v)
+                ! Now it's either Constant, V in R or V in S - we now turn them
+                ! all into V in S - the only thing we can load
+                ! Start with one we have no instructions for, and promote it to
+                ! something we know how to handle...
+                %if (v_type = byte) %then loadreg(v, any)
+                %if (v_form = V in R) %start
+                    %return %if (v_base >= FR0)
+                    ! This must be an integer in a CPU register - we need to store it
+                    ! before we can use it
+                    v_disp = getwork(word size)
+                    dumpmr(MOV, EBP, v_disp, v_extdisp, v_base)
+                    release(v_base)
+                    v_base = EBP
+                    v_scope = 0
+                    v_form = V in S
+                    ! Now it looks like an integer V in S
+                %finish
 
-				%if (v_form = constant) %start
+                %if (v_form = constant) %start
                     ! This is an integer constant
-					%if (v_disp = 0) %start
+                    %if (v_disp = 0) %start
                         ! We have a special instruction for zero
-						r = FR0 + FPU Stack
-						dumpflopspec(FLDZ)
-						v_base = r
-						claim(r)
-						v_disp = 0;
-						v_form = V in R
-						v_type = real
-						%return
-					%finish
-					! Otherwise, we need it in store
-					v_disp = getcotw(v_disp)
-					v_form = V in S
-					v_base = 0
-					v_scope = COT
-				%finish
+                        r = FR0 + FPU Stack
+                        dumpflopspec(FLDZ)
+                        v_base = r
+                        claim(r)
+                        v_disp = 0
+                        v_form = V in R
+                        v_type = real
+                        %return
+                    %finish
+                    ! Otherwise, we need it in store
+                    v_disp = getcotw(v_disp)
+                    v_form = V in S
+                    v_base = 0
+                    v_scope = COT
+                %finish
 
-				! Now everything that's left is a V in S
-				%if (v_type = integer) %start
-					op = FILD
-				%else
-					%if (v_type = real) %start
-						op = FLDD
-					%else
-						op = FLDQ
-					%finish
-				%finish
+                ! Now everything that's left is a V in S
+                %if (v_type = integer) %start
+                    op = FILD
+                %else
+                    %if (v_type = real) %start
+                        op = FLDD
+                    %else
+                        op = FLDQ
+                    %finish
+                %finish
 
-				! register is going to be the top of stack
-				r = FR0 + FPU Stack
-		
-				dumpfloprm(op, v_base!v_scope, v_disp, v_extdisp )
-				release(v_base)
-				v_base = r
-				claim(r)
-				v_disp = 0;
-				v_form = V in R
-				v_type = real
-				%return
-			%finish
+                ! register is going to be the top of stack
+                r = FR0 + FPU Stack
 
-			! If the request is one of the variations on "any" then we need
-			! to first allocate a target register.  First, we make a local
-			! adjustment because we can't load bytes into "any" register,
-			! only into the GP registers...
-			%if (v_type = byte) %start
-				%if (r = any) %then r = anyg
-				! What's more, there is only one register that is both a pointer
-				! and a legal byte destination
-				%if (r = anyp) %then r = EBX
-			%finish
+                dumpfloprm(op, v_base!v_scope, v_disp, v_extdisp )
+                release(v_base)
+                v_base = r
+                claim(r)
+                v_disp = 0
+                v_form = V in R
+                v_type = real
+                %return
+            %finish
 
-			! We also map the virtual display into a real register if we
-			! need to.  Also, it is possible that an in-store form may
-			! be derived from a non-pointer register, so we fix that too.
-			%if (v_base >= AL) %then %start
+            ! If the request is one of the variations on "any" then we need
+            ! to first allocate a target register.  First, we make a local
+            ! adjustment because we can't load bytes into "any" register,
+            ! only into the GP registers...
+            %if (v_type = byte) %start
+                %if (r = any) %then r = anyg
+                ! What's more, there is only one register that is both a pointer
+                ! and a legal byte destination
+                %if (r = anyp) %then r = EBX
+            %finish
+
+            ! We also map the virtual display into a real register if we
+            ! need to.  Also, it is possible that an in-store form may
+            ! be derived from a non-pointer register, so we fix that too.
+            %if (v_base >= AL) %then %start
                 { then map to a 32-bit reg in range EAX..EDI }
-				v_base = get display(EAX + v_base - AL)
-				claim(v_base)
-			%finish
+                v_base = get display(EAX + v_base - AL)
+                claim(v_base)
+            %finish
 
-			! Now go ahead and allocate a register
-			%if (r = any) %then %start
-				! If we've got a base,
+            ! Now go ahead and allocate a register
+            %if (r = any) %then %start
+                ! If we've got a base,
                 ! it's not in use by anyone else,
                 ! and isn't a display register,
                 ! then use it
-				%if (v_base # 0) %and (activity(v_base) = 1) %and (displayhint(v_base) = 0) %start
-					r = v_base
-				%finish %else %start
-					r = gp reg
-				%finish
-			%finish %else %if (r = anyg) %then %start
-				%if (0 < v_base <= EBX) %and (activity(v_base) = 1) %start
-					r = v_base
-				%finish %else %start
-					r = gp reg
-				%finish
-			%finish %else %if (r = anyp) %then %start
-				%if (activity(v_base) = 1) %and ((v_base = EBX) %or (v_base = ESI) %or (v_base = EDI)) %then %start
-					r = v_base
-				%finish %else %start
-					r = pt reg
-				%finish
-			%finish %else %if (v_base = r) %start
-				%if (activity(r) > 1) %start
+                %if (v_base # 0) %and (activity(v_base) = 1) %and (displayhint(v_base) = 0) %start
+                    r = v_base
+                %finish %else %start
+                    r = gp reg
+                %finish
+            %finish %else %if (r = anyg) %then %start
+                %if (0 < v_base <= EBX) %and (activity(v_base) = 1) %start
+                    r = v_base
+                %finish %else %start
+                    r = gp reg
+                %finish
+            %finish %else %if (r = anyp) %then %start
+                %if (activity(v_base) = 1) %and ((v_base = EBX) %or (v_base = ESI) %or (v_base = EDI)) %then %start
+                    r = v_base
+                %finish %else %start
+                    r = pt reg
+                %finish
+            %finish %else %if (v_base = r) %start
+                %if (activity(r) > 1) %start
                     ! protect other uses
-					release(r)
+                    release(r)
 
                     ! Hide my ownership for the moment
                     v_base = 0
 
                     ! Zap everybody else
-					hazard(r)
+                    hazard(r)
 
                     ! Get it back
                     claim(r)
                     v_base = r
-				%finish
-			%finish %else %start
-				hazard(r)
-			%finish
-			-> f(v_form)
+                %finish
+            %finish %else %start
+                hazard(r)
+            %finish
+            -> f(v_form)
 
 f(V in REC):
-			reduce(v); ->f(v_form)
+            reduce(v)
+            ->f(v_form)
 
 f(AV in REC):
-            reduce(v); ->f(v_form)
+            reduce(v)
+            ->f(v_form)
 
 f(A in REC):
-            reduce(v); ->f(v_form)
+            reduce(v)
+            ->f(v_form)
 
-f(AV in R): Abort("Unexpected Stack Form")
+f(AV in R):
+            Abort("Unexpected Stack Form")
 
-f(A in R):  Abort("Unexpected Stack Form")
+f(A in R):
+            Abort("Unexpected Stack Form")
 
 f(constant):
-			%if (v_disp = 0) %and (v_scope = 0) %start
-				dumprr(XOR, r, r)
-			%else
-				dumprioffset(MOV, r, v_scope, v_disp, v_extdisp )
-			%finish
-			v_base = r
-			v_disp = 0
-			v_scope = 0
-			v_form = V in R
-			claim(r)
-			%return
+            %if (v_disp = 0) %and (v_scope = 0) %start
+                dumprr(XOR, r, r)
+            %else
+                dumprioffset(MOV, r, v_scope, v_disp, v_extdisp )
+            %finish
+            v_base = r
+            v_disp = 0
+            v_scope = 0
+            v_form = V in R
+            claim(r)
+            %return
 
 f(V in R):
             %return %if (v_base = r)
-			dumprr(MOV, r, v_base)
-			release(v_base)
-			v_base = r
-			v_disp = 0
-			v_scope = 0
-			v_form = V in R
-			claim(r)
-			%return
+            dumprr(MOV, r, v_base)
+            release(v_base)
+            v_base = r
+            v_disp = 0
+            v_scope = 0
+            v_form = V in R
+            claim(r)
+            %return
 
 f(A in S):
             ! is the register a pointer?
-			%if (r = EBX) %or (r = ESI) %or (r = EDI) %start
-				ptr = r
-			%finish %else %start
-				ptr = pt reg
-			%finish
-			dumprm(MOV, ptr, v_base!v_scope, v_disp, v_extdisp )
-			release(v_base)
+            %if (r = EBX) %or (r = ESI) %or (r = EDI) %start
+                ptr = r
+            %finish %else %start
+                ptr = pt reg
+            %finish
+            dumprm(MOV, ptr, v_base!v_scope, v_disp, v_extdisp )
+            release(v_base)
             claim(ptr)
-			v_base = ptr
-			v_disp = 0
-			v_scope = 0
-			%if (v_type = integer) %start
-				dumprm(MOV, r, v_base!v_scope, v_disp, v_extdisp )
+            v_base = ptr
+            v_disp = 0
+            v_scope = 0
+            %if (v_type = integer) %start
+                dumprm(MOV, r, v_base!v_scope, v_disp, v_extdisp )
             %finish %else %if (v_type = short) %start
                 ! JDM JDM temporarily pretend it's a 32-bit integer
-				dumprm(MOVSX, r, v_base!v_scope, v_disp, v_extdisp )
-			%finish %else %if (v_type = byte) %start
-				! watch out for register re-use here...
+                dumprm(MOVSX, r, v_base!v_scope, v_disp, v_extdisp )
+            %finish %else %if (v_type = byte) %start
+                ! watch out for register re-use here...
 
                 ! clear it, but only if it isn't needed
-				%if (r # v_base) %then dumprr(XOR, r, r)
+                %if (r # v_base) %then dumprr(XOR, r, r)
                 ! Convert the register to be in the AL..BH range
-				dumprm8(MOV, AL + r - EAX, v_base!v_scope, v_disp, v_extdisp )
+                dumprm8(MOV, AL + r - EAX, v_base!v_scope, v_disp, v_extdisp )
 
                 ! otherwise a more expensive clear later
-				%if (r = v_base) %then dumpri(AND, r, 255)
-				v_type = integer
-			%finish %else %start
+                %if (r = v_base) %then dumpri(AND, r, 255)
+                v_type = integer
+            %finish %else %start
                 ! reals
-				abort("Load Real")
-			%finish
-			release(v_base)
-			v_base = r
-			v_disp = 0
-			v_scope = 0
-			v_form = V in R
-			claim(r)
-			%return
+                abort("Load Real")
+            %finish
+            release(v_base)
+            v_base = r
+            v_disp = 0
+            v_scope = 0
+            v_form = V in R
+            claim(r)
+            %return
 
 f(V in S):
             %if (v_type = integer) %start
-				dumprm(MOV, r, v_base!v_scope, v_disp, v_extdisp )
+                dumprm(MOV, r, v_base!v_scope, v_disp, v_extdisp )
             %finish %else %if (v_type = short) %start
                 ! JDM JDM temporarily pretend it's a 32-bit integer
-				dumprm(MOVSX, r, v_base!v_scope, v_disp, v_extdisp )
-			%finish %else %if (v_type = byte) %start
-				! watch out for register re-use here...
+                dumprm(MOVSX, r, v_base!v_scope, v_disp, v_extdisp )
+            %finish %else %if (v_type = byte) %start
+                ! watch out for register re-use here...
 
                 ! clear it, but only if it isn't needed
-				%if (r # v_base) %then dumprr(XOR, r, r)
+                %if (r # v_base) %then dumprr(XOR, r, r)
                 ! Convert the register to be in the AL..BH range
-				dumprm8(MOV, AL + r - EAX, v_base!v_scope, v_disp, v_extdisp )
+                dumprm8(MOV, AL + r - EAX, v_base!v_scope, v_disp, v_extdisp )
 
                 ! otherwise a more expensive clear later
-				%if (r = v_base) %then dumpri(AND, r, 255)
-				v_type = integer
-			%finish %else %start
+                %if (r = v_base) %then dumpri(AND, r, 255)
+                v_type = integer
+            %finish %else %start
                 ! reals
-				abort("Load Real")
-			%finish
-			release(v_base)
-			v_base = r
-			v_disp = 0
-			v_scope = 0
-			v_form = V in R
-			claim(r)
-			%return
+                abort("Load Real")
+            %finish
+            release(v_base)
+            v_base = r
+            v_disp = 0
+            v_scope = 0
+            v_form = V in R
+            claim(r)
+            %return
 
 f(A V in S):
-			%if (v_base # 0) %start
-				dumprm(LEA, r, v_base!v_scope, v_disp, v_extdisp )
-				release(v_base)
-				v_type = integer
-			%finish %else %if (v_disp = 0) %and (v_scope = 0) %start
-				! else
-				dumprr(XOR, r, r)
-			%finish %else %start
-				dumprioffset(MOV, r, v_scope, v_disp, v_extdisp )
-			%finish
-			v_base = r
-			v_disp = 0
-			v_scope = 0
-			v_form = V in R
-			claim(r)
-			%return
-		%end
+            %if (v_base # 0) %start
+                dumprm(LEA, r, v_base!v_scope, v_disp, v_extdisp )
+                release(v_base)
+                v_type = integer
+            %finish %else %if (v_disp = 0) %and (v_scope = 0) %start
+                ! else
+                dumprr(XOR, r, r)
+            %finish %else %start
+                dumprioffset(MOV, r, v_scope, v_disp, v_extdisp )
+            %finish
+            v_base = r
+            v_disp = 0
+            v_scope = 0
+            v_form = V in R
+            claim(r)
+            %return
+        %end
         ! LOAD REG
 
         !                                              >> OPERATION <<
@@ -4488,7 +4536,7 @@ oper(NEGx):
             ! 8086 has no "abs" instructions, so we do a test and jump
 oper(ABSx):
             loadreg(rhs, any)
-			dumpri(CMP, rhs_base, 0)
+            dumpri(CMP, rhs_base, 0)
             work = new tag
             dumpjump(JGE, work)
             dumpur(NEG, rhs_base)
@@ -4585,7 +4633,7 @@ oper(SUBx):
                         %if (-2 < value < 2) %then %start
                             %if (value # 0) %then dumpur(indec(value), lhs_base)
                         %finish %else %start
-							dumpri(opmap(op), lhs_base, rhs_disp)
+                            dumpri(opmap(op), lhs_base, rhs_disp)
                         %finish
                     %finish
                 %finish
@@ -4633,15 +4681,38 @@ oper(XORx):
                 ! we will do the assignment ourselves
                 next iCode
 
-				! make LHS accessible
+                ! make LHS accessible
                 address(lhs)
                 %if (rhs_form = constant) %then %start
                     value = rhs_disp
                     %if (lhs_type = byte) %start
-                        warn(8) %if (rhs_disp&(\255) # 0)
-                        dumpmi8(opmap(op), lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp)
+                        ! JDM JDM Remember rhs_disp contains a signed 32-bit integer constant value
+                        ! So the signed 32-bit integer range allowed for a %byte (== 8-bit unsigned integer)
+                        ! has bit range 16_00000000:16_000000FF
+                        ! These then correspond to 32-bit integer values 0:255
+                        ! So an 8-bit byte must be in the 32-bit integer range 0:255
+                        ! Thus check for values in the 32-bit integer range 0:255
+
+!                        warn(8) %if (rhs_disp&(\255) # 0)
+!                        warn(8) %unless (0 <= rhs_disp <= 255)
+                        warn(8) %unless (-256 <= rhs_disp <= 255)
+
+                        ! Do an immediate to memory store on the byte value in rhs_disp
+                        dumpmi8(opmap(op), lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp&255)
                     %finish %else %if (lhs_type = short) %start
-                        warn(8) %if (rhs_disp&(\16_ffff) # 0)
+                        ! JDM JDM Remember rhs_disp contains a signed 32-bit integer constant value
+                        ! So the signed 32-bit integer range allowed for a %short (== 16-bit signed integer)
+                        ! has bit range 16_00000000:16_00008000 or 16_FFFF8000:16_FFFFFFFF
+                        ! noting that 16_00008000 will be -32768 (when sign-extended to be 16_FFFF8000)
+                        ! These then correspond to 32-bit integer values 0:32768 or -32768:-1
+                        ! So a 16-bit integer must be in the 32-bit integer range -32768:-1 or 0:32768
+                        ! Thus check for values in the 32-bit integer range -32768:32768
+
+!                        warn(9) %if (rhs_disp&(\16_ffff) # 0)
+                        warn(9) %unless (-32768 <= rhs_disp <= 32768)
+
+                        ! JDM JDM We are doing an immediate value to memory
+                        ! This allows 8-bit byte or 32-bit integer operation
                         dumpmi(opmap(op), lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp)
                     %finish %else %start
                         dumpmi(opmap(op), lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp)
@@ -4674,7 +4745,7 @@ oper(XORx):
             %if (rhs_form = constant) %then %start
                 value = rhs_disp
                 loadreg(lhs, any)
-				dumpri(opmap(op), lhs_base, value)
+                dumpri(opmap(op), lhs_base, value)
             %finish %else %start
                 ! not a constant
                 ! all these are commutative, so flip it to make it easier
@@ -4697,7 +4768,7 @@ oper(XORx):
             %finish
 
             ! the RHS
-			pop rel
+            pop rel
 
             %return
 
@@ -4881,7 +4952,7 @@ shift it:
                 warn(6) %unless (0 <= value <= 31)
                 %if (value # 0) %start
                     loadreg(lhs, any)
-					dumpri(opmap(op), lhs_base, value)
+                    dumpri(opmap(op), lhs_base, value)
                 %finish
             %finish %else %start
                 ! RHS variable
@@ -4979,7 +5050,7 @@ fold(RSHx):
             value = lhs_disp >> rhs_disp; -> set value
 fold(EXPx):
             %if (rhs_disp < 0) %then abort("Fold -ve Exp")
-			value = 1
+            value = 1
             %for op=1, 1, rhs_disp %cycle
                 value = value * lhs_disp
             %repeat
@@ -5111,7 +5182,7 @@ roper(REXPx):
             pop rel
             ! The usual slightly clunky floating point "push"
             work = ptreg
-			dumpri(SUB, ESP, 8)
+            dumpri(SUB, ESP, 8)
             dumprr(MOV, work, ESP)
             dumpfloprm(FSTQ, work, 0, 0)
             release(lhs_base)
@@ -5127,41 +5198,31 @@ roper(REXPx):
             %return
 
 roper(NOTx):
-			abort("NOTx: Unsupported Real Operation")
+            abort("NOTx: Unsupported Real Operation")
+
 roper(ANDx):
-			abort("ANDx: Unsupported Real Operation")
+            abort("ANDx: Unsupported Real Operation")
+
 roper(ORx):
-			abort("ORx: Unsupported Real Operation")
+            abort("ORx: Unsupported Real Operation")
+
 roper(XORx):
-			abort("XORx: Unsupported Real Operation")
+            abort("XORx: Unsupported Real Operation")
+
 roper(REMx):
-			abort("REMx: Unsupported Real Operation")
+            abort("REMx: Unsupported Real Operation")
+
 roper(LSHx):
-			abort("LSHx: Unsupported Real Operation")
+            abort("LSHx: Unsupported Real Operation")
+
 roper(RSHx):
-			abort("RSHx: Unsupported Real Operation")
+            abort("RSHx: Unsupported Real Operation")
+
 roper(EXPx):
-			abort("EXPx: Unsupported Real Operation")
+            abort("EXPx: Unsupported Real Operation")
 
         %end
         !     Operation
-
-        !                                              >> LOAD OPERATION <<
-        ! perform the operation OP on the top two elements of the stack.
-        !   (single element for unary operators)
-        ! This is a wrapper to Operation
-        ! It avoids multiple dumps of the Operation iCode instruction 
-        %routine  Load Operation(%integer op)
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Operation( op )
-        %end
 
         ! Store the item in RHS to LHS.  Encapsulates the difficulties
         ! of variable length items and pushing things on the stack to
@@ -5221,10 +5282,20 @@ roper(EXPx):
                         dumpvpush(rhs)
                     %finish
                 %finish %else %if (rhs_form = constant) %and (rhs_scope = 0) %start
-                    ! Technically should add code to MOV a truncated %short constant to the LHS
-                    ! JDM JDM temp test
-                    warn(8) %if (rhs_disp&(\16_ffff) # 0)
-                    ! In the interim, move the constant as 2 bytes
+                    ! JDM JDM Remember rhs_disp contains a signed 32-bit integer constant value
+                    ! So the signed 32-bit integer range allowed for a %short (== 16-bit signed integer)
+                    ! has bit range 16_00000000:16_00008000 or 16_FFFF8000:16_FFFFFFFF
+                    ! noting that 16_00008000 will be -32768 (when sign-extended to be 16_FFFF8000)
+                    ! These then correspond to 32-bit integer values 0:32768 or -32768:-1
+                    ! So a 16-bit integer must be in the 32-bit integer range -32768:-1 or 0:32768
+                    ! Thus check for values in the 32-bit integer range -32768:32768
+
+                    warn(9) %unless (-32768 <= rhs_disp <= 32768)
+
+                    ! JDM JDM We should add code to MOV a truncated %short constant to the LHS
+                    ! but for Intel x86 we can only MOV a 32-bit integer or an 8-bit byte
+
+                    ! Therefore, move the constant as 2 bytes
                     ! store the "low" byte
                     dumpmi8(MOV, lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp&255)
                     ! store the "hi" byte
@@ -5307,6 +5378,17 @@ roper(EXPx):
                         dumpvpush(rhs)
                     %finish
                 %finish %else %if (rhs_form = constant) %and (rhs_scope = 0) %start
+                    ! Remember rhs_disp contains a signed 32-bit integer constant value
+                    ! So the signed 32-bit integer range allowed for a %byte (== 8-bit unsigned integer)
+                    ! has bit range 16_00000000:16_000000FF
+                    ! These then correspond to 32-bit integer values 0:255
+                    ! So an 8-bit byte must be in the 32-bit integer range 0:255
+                    ! Thus check for values in the 32-bit integer range 0:255
+
+!                    warn(8) %unless (0 <= rhs_disp <= 255)
+                    warn(8) %unless (-256 <= rhs_disp <= 255)
+
+                    ! Do an immediate to memory MOV on the byte value in rhs_disp
                     dumpmi8(MOV, lhs_base!lhs_scope, lhs_disp, lhs_extdisp, rhs_disp&255)
                 %finish %else %if (rhs_type = byte) %start
                     %if (rhs_extra=8) %start
@@ -5564,7 +5646,7 @@ roper(EXPx):
                 ! destination
                 amap(lh)
 
-                ! ABD %string(*)%name  NOT handled special here - should be?
+                ! ABD %string( * )%name  NOT handled special here - should be?
                 amap(rh)
             %finish
 
@@ -5579,7 +5661,7 @@ roper(EXPx):
                     ! pass record by value - destination is the stack
                     n = lh_size
                     hazard(EDI)
-					dumpri(SUB, ESP, lh_size)
+                    dumpri(SUB, ESP, lh_size)
                     dumprr(MOV, EDI, ESP)
                     claim(EDI)
                     lh_base = EDI
@@ -5589,7 +5671,7 @@ roper(EXPx):
                     loadreg(lh, EDI)
                 %finish
                 hazard(ECX)
-				dumpri(MOV, ECX, n)
+                dumpri(MOV, ECX, n)
                 %if (rh_Form = Constant) %start
                     hazard(EAX)
                     ! Sneaky trick to get a zero
@@ -5628,8 +5710,9 @@ roper(EXPx):
                 %if (lh_base = ESP) %start
                     ! pass string by value - destination is the stack
                     ! space is string size, plus one for length, plus make it even
-                    p = lh_size + 1; p = (p+align) & (\align)
-					dumpri(SUB, ESP, p)
+                    p = lh_size + 1
+                    p = (p+align) & (\align)
+                    dumpri(SUB, ESP, p)
                     ! we want to Push ESP here - sadly different versions of x86
                     ! architecture have different interpretations of "PUSH ESP", so...
                     r = gp reg
@@ -5659,18 +5742,6 @@ roper(EXPx):
             pop rel
         %end
         !  assign
-
-        %routine  Load Assign(%integer  assop )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            assign( assop )
-        %end
 
         !                                                      >> ARRAY REF <<
         ! Array references always use the PERM
@@ -5798,25 +5869,13 @@ roper(EXPx):
         %end
         !  array ref
 
-        %routine Load Array Ref( %integer mode )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            array ref( mode )
-        %end
-
         !                                              >> TEST ZERO <<
         ! test a real/integer/byte variable against zero
         %routine  test zero(%record(stackfm)%name  v)
 
             %if (v_type = integer) %or (v_type = byte) %or (v_type = short) %start
                 loadreg(v,any)
-				dumpri(CMP, v_base, 0)
+                dumpri(CMP, v_base, 0)
             %else
                 abort("Test Zero")
             %finish
@@ -5871,7 +5930,7 @@ roper(EXPx):
                 loadreg(r, any)
                 dumpur(PUSH, r_base)
                 perm(scomp, 2)
-				dumpri(CMP, EAX, 0)
+                dumpri(CMP, EAX, 0)
             %finish
         %end
         ! compare strings
@@ -5963,8 +6022,8 @@ roper(EXPx):
             %return %if (uncond jump = next cad);          !  can't get here ?
 
             ! Pure 8086 would need these two
-            !	dumprr(MOV, ESP, EBP)
-            !	dumpur(POP, EBP)
+            !   dumprr(MOV, ESP, EBP)
+            !   dumpur(POP, EBP)
             ! but now we use this instead...
             dumpsimple(LEAVE)
 
@@ -6057,14 +6116,14 @@ roper(EXPx):
                 t = 0 %unless (0 < t < 16)
                 abort("Illegal %prim macro") %unless (0 < t < 15)
 
-                ! JDM JDM show start of macro "call" in listing
-                ! Now to say which macro was requested
-                selectoutput(listout)
-                spaces(38)
-                printstring( "Generating CODE for '" )
-                printstring( macroname(t) )
-                printstring( "' (MACRO ".itos(t,0).")")
-                newline
+!                ! JDM JDM show start of macro "call" in listing
+!                ! Now to say which macro was requested
+!                selectoutput(listout)
+!                spaces(38)
+!                printstring( "Generating CODE for '" )
+!                printstring( macroname(t) )
+!                printstring( "' (MACRO ".itos(t,0).")")
+!                newline
 
                 -> b(t)
 b(1):
@@ -6130,22 +6189,40 @@ b(13):
                 top_form = V in S
                 top_base = EBP
                 top_disp = p
-				                                       -> esac
-esac:
-                ! JDM JDM show macro "call" in listing
-                ! Now to say which macro was requested
-                selectoutput(listout)
-                spaces(38)
-                printstring( "CALL '" )
-                printstring( macroname(t) )
-                printstring( "' (MACRO ".itos(t,0).")")
-                newline
+                                                -> esac
 
-			%else
+esac:
+!                ! JDM JDM show macro "call" in listing
+!                ! Now to say which macro was requested
+!                selectoutput(listout)
+!                spaces(38)
+!                printstring( "CALL '" )
+!                printstring( macroname(t) )
+!                printstring( "' (MACRO ".itos(t,0).")")
+!                newline
+
+            %else
                 !   -- normal routine calls --
                 ! String functions have a hidden last parameter to point
                 ! to the result area
-                %if (v_type = string) %and (v_aform = 8) %start
+                ! JDM JDM attempt to obtain return value of %record %function
+                ! temporary debug call to show(v) to determine function %result
+!                %if (diagnose&16 # 0) %then show(v)
+
+                ! JDM JDM
+                ! %record / %string functions have a "hidden" parameter
+                ! which is used to store the function result
+                ! %real / %longreal has %result on the FPU stack
+                ! All other function results %byte / %short / %integer / %predicate?
+                ! will have the %result returned in the %EAX register.
+                %if (v_type = record) %and (v_aform = 8) %start
+                    ! Calling a function which returns a %record
+                    t = getwork(v_size)
+                    p = gp reg
+                    dumprm(LEA, p, EBP, t, 0)
+                    dumpur(PUSH, p)
+                %finish %else %if (v_type = string) %and (v_aform = 8) %start
+                    ! Calling a function which returns a %string
                     t = getwork(v_size+1)
                     p = gp reg
                     dumprm(LEA, p, EBP, t, 0)
@@ -6155,60 +6232,56 @@ esac:
                 %if (v_scope = EXT) %start
                     ! external
                     dumpextcall(v_disp)
-                %else
-                    %if (v_base # 0) %start
-                        ! procedure-as-parameter
-                        ! so, plant call indirect through variable
-                        dumpum(CALL, v_base, v_disp, v_extdisp )
-                    %else
-                        ! local routine
-                        ! plants fixup for the tag
-                        dumpjump(CALL, v_disp)
-                    %finish
+                %finish %else %if (v_base # 0) %start
+                    ! procedure-as-parameter
+                    ! so, plant call indirect through variable
+                    dumpum(CALL, v_base, v_disp, v_extdisp )
+                %finish %else %start
+                    ! local routine
+                    ! plants fixup for the tag
+                    dumpjump(CALL, v_disp)
                 %finish
                 ! adjust the stack
                 %if (v_extra # 0) %then dumpri(ADD, ESP, v_extra)
                 %if (v_type = 0) %start
                     ! not function or map
                     pop rel
-                %else
+                %finish %else %start
                     ! Here we've got a result
                     ! Result is local, even if the function wasn't
                     v_scope = 0
                     %if (v_type = string) %and (v_aform = 8) %start
+                        ! JDM JDM added comment to indicate %result type
+                        ! a %string was returned
                         v_base = EBP;             ! String result will have been copied back here
                         v_disp = t
                         v_form = V in S
-                    %else
-                        %if ((v_type = real) %or (v_type = lreal)) %and (v_aform = 8) %start
-                            ! Floating result will be on the FPU stack
-                            v_form = V in R
-                            v_base = FR0
-                            claim(FR0)
-                            fpu stack = 1
-                        %else
-                            ! Result is always in EAX
-                            v_base = EAX
-                            v_disp = 0;                ! Clear this for MAP results
-                            claim(EAX)
-                        %finish
+                    %finish %else %if (v_type = record) %and (v_aform = 8) %start
+                        ! JDM JDM added comment to indicate %result type
+                        ! a %record was returned
+                        v_base = EBP;             ! record result will have been copied back here
+                        v_disp = t
+                        v_form = V in S
+                    %finish %else %if ((v_type = real) %or (v_type = lreal)) %and (v_aform = 8) %start
+                        ! JDM JDM added comment to indicate %result type
+                        ! a %real / %longreal was returned
+                        ! Floating result will be on the FPU stack
+                        v_form = V in R
+                        v_base = FR0
+                        claim(FR0)
+                        fpu stack = 1
+                    %finish %else %start
+                        ! JDM JDM added comment to indicate %result type
+                        ! a %byte / %short / %integer / %name? / %predicate? was returned
+                        ! Result is always in EAX
+                        v_base = EAX
+                        v_disp = 0;                ! Clear this for MAP results
+                        claim(EAX)
                     %finish
                 %finish
-			%finish
+            %finish
         %end;
         !  Compile Call
-
-        %routine Load Compile Call( %record(stackfm)%name  v )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Compile Call( v )
-        %end
 
         !                                              >> COMPILE FOR <<
         %routine  compile for( %integer lab )
@@ -6267,7 +6340,7 @@ esac:
             pop stack;! zap unwanted copy of IV
 
             ! Stack is now  top->[FV[INC[CV 
-            push copy(cv);		! in case compare alters it
+            push copy(cv);      ! in case compare alters it
             compare(top, fv)
             jump to(lab+1, JE, 1)
             invert = 0; ! because the compare might have flipped this (N/A for JE)
@@ -6285,68 +6358,44 @@ esac:
         %end
         ! for
 
-		%routine End of Block
-			%if (amode >= 0) %start
+        %routine End of Block
+            %if (amode >= 0) %start
                 ! No return code for %endoffile
-				dump return
+                dump return
 
                 ! don't include the display
-				dumpstaticfill(staticalloc, frame+(level*word size), events, evep, evfrom)
-			%finish
-		%end
-
-		%routine Load End of Block
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
+                dumpstaticfill(staticalloc, frame+(level*word size), events, evep, evfrom)
             %finish
-            ! JDM JDM end debug
+        %end
 
-			End of Block
-		%end
-
-		%routine Compile Begin
-			decvar == begin
+        %routine Compile Begin
+            decvar == begin
             decvar_disp = new tag
-			otype = 0
+            otype = 0
             spec = 0
             potype = 0
-			%if (level # 0) %start
+            %if (level # 0) %start
                 ! not outermost %begin
-				push const(decvar_disp)
-				top_type = 0;      ! it's not a function!
-				compile call(top)
-				skip proc = new tag
-				dump jump(JMP, skip proc)
-				dump label(decvar_disp);  ! this is where to call
-			%finish
-			assemble(0,labs,names)
-			%if (level # 0) %start
-				dump label(skip proc)
-				last skip = next cad
-				Uncond Jump = 0
-			%finish
-		%end
-
-		%routine Load Compile Begin
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
+                push const(decvar_disp)
+                top_type = 0;      ! it's not a function!
+                compile call(top)
+                skip proc = new tag
+                dump jump(JMP, skip proc)
+                dump label(decvar_disp);  ! this is where to call
             %finish
-            ! JDM JDM end debug
-
-            Compile Begin
+            assemble(0,labs,names)
+            %if (level # 0) %start
+                dump label(skip proc)
+                last skip = next cad
+                Uncond Jump = 0
+            %finish
         %end
 
         ! Utility routine used when dumping initialisers for OWNs
         ! Note non-portable use of real values
         %routine  adump
-            %integer i
-            %real		rv32
+            %integer    i
+            %real       rv32
             %switch ot(general:tlabel)
 
             ->ot(own type)
@@ -6355,30 +6404,6 @@ ot(general):
 ot(integer):
             gput(ownval)
             -> done
-ot(real):
-            rv32 = rvalue
-            ! because our default variable is a 64 bit long real
-            %for i = 0,1,3 %cycle
-				gbyte(byteinteger(addr(rv32)+i))
-			%repeat
-			-> done
-ot(string):
-            %if (current string(0)+1 > data size) %start
-                ! check for overflow
-				! String constant too long - warn and truncate
-				warn(5)
-                current string(0) = data size - 1
-			%finish
-
-			%for i = 0,1,data size - 1 %cycle
-				gbyte(current string(i))
-			%repeat
-			-> done
-ot(record):
-            %for i = 1,1,data size %cycle
-				gbyte(0)
-			%repeat
-			-> done
 ot(byte):
             gbyte(ownval)
             -> done
@@ -6388,16 +6413,43 @@ ot(short):
 ot(long):
             gput(ownval)
             -> done
+ot(real):
+            ! because our default variable is a 64 bit long real
+            ! convert to a 32 bit real
+            rv32 = rvalue
+            ! now store the 4 bytes of the real number
+            %for i = 0,1,3 %cycle
+                gbyte(byteinteger(addr(rv32)+i))
+            %repeat
+            -> done
 ot(lreal):
+            ! store the 8 bytes of the long real number
             %for i = 0,1,7 %cycle
-				gbyte(byteinteger(addr(rvalue)+i))
-			%repeat
-			-> done
+                gbyte(byteinteger(addr(rvalue)+i))
+            %repeat
+            -> done
+ot(string):
+            %if (current string(0)+1 > data size) %start
+                ! check for overflow
+                ! String constant too long - warn and truncate
+                warn(5)
+                current string(0) = data size - 1
+            %finish
+
+            %for i = 0,1,data size - 1 %cycle
+                gbyte(current string(i))
+            %repeat
+            -> done
+ot(record):
+            %for i = 1,1,data size %cycle
+                gbyte(0)
+            %repeat
+            -> done
 ot(tarray):
             %for i = 1,1,data size %cycle
-				gbyte(0)
-			%repeat
-			-> done
+                gbyte(0)
+            %repeat
+            -> done
 ot(tlabel):
             gput(ownval)
             -> done
@@ -6418,72 +6470,36 @@ done:
             %result = var(lab)_disp
         %end
 
-		%routine Compare Double
-			LHS == stack(stp-1)
-			RHS == top
-			loadreg(rhs, any)
-			! We happen to know that Compare loads the left parameter in a register.
-			! We've already got RHS in a register, so we flip the LHS and RHS to the
-			! comparison and set Invert accordingly
-			compare(rhs, lhs)
-			invert = 1
-			! release LH and then overwrite it with RH
-			release(lhs_base)
-			lhs = rhs
-			pop stack
-		%end
-
-		%routine Load Compare Double
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Compare Double
+        %routine Compare Double
+            LHS == stack(stp-1)
+            RHS == top
+            loadreg(rhs, any)
+            ! We happen to know that Compare loads the left parameter in a register.
+            ! We've already got RHS in a register, so we flip the LHS and RHS to the
+            ! comparison and set Invert accordingly
+            compare(rhs, lhs)
+            invert = 1
+            ! release LH and then overwrite it with RH
+            release(lhs_base)
+            lhs = rhs
+            pop stack
         %end
 
-		%routine Compare Values
-			LHS == stack(stp-1)
-			RHS == top
-			compare(lhs,rhs)
-			pop rel
-			pop rel
-		%end
+        %routine Compare Values
+            LHS == stack(stp-1)
+            RHS == top
+            compare(lhs,rhs)
+            pop rel
+            pop rel
+        %end
 
-		%routine Load Compare Values
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
+        %routine Compare Addresses
+            amap(top)
+            amap(stack(stp-1));                  ! Now do same as compare values
             Compare Values
-		%end
+        %end
 
-		%routine Compare Addresses
-			amap(top);
-			amap(stack(stp-1));                  ! Now do same as compare values
-			Compare Values
-		%end
-
-		%routine Load Compare Addresses
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Compare Addresses
-		%end
-
-		%routine Define Compiler Label( %integer label)
+        %routine Define Compiler Label( %integer label)
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6494,18 +6510,18 @@ done:
             %finish
             ! JDM JDM end debug
 
-			%if (label = 0) %start
-				dump label(skipproc)
-				last skip = next cad
-				Uncond Jump = 0
-			%else
-				define label( label );
-			%finish
-		%end
+            %if (label = 0) %start
+                dump label(skipproc)
+                last skip = next cad
+                Uncond Jump = 0
+            %else
+                define label( label )
+            %finish
+        %end
 
-		%routine Init( %integer N )
-			! N = Number of values to assign
-			%integer j
+        %routine Init( %integer N )
+            ! N = Number of values to assign
+            %integer j
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6516,59 +6532,55 @@ done:
             %finish
             ! JDM JDM end debug
 
-			%if (stp # 0) %start
+            %if (stp # 0) %start
                 ! Value supplied?
-				own val = top_disp
-				%if (own type = real) %or (own type = lreal) %start
-					rvalue = own val %if (top_type = integer);  ! copy integer supplied into floater
-				%finish
-				pop stack
-			%else
+                own val = top_disp
+                %if (own type = real) %or (own type = lreal) %start
+                    rvalue = own val %if (top_type = integer);  ! copy integer supplied into floater
+                %finish
+                pop stack
+            %finish %else %start
                 ! initialise to default pattern
-				ownval = 0
-				current string(0) = 0;     ! in case it's a string
-			%finish
+                own val = 0
+                current string(0) = 0;     ! in case it's a string
+            %finish
 
-			%if (own form = array) %or (own form = name array) %start
-				adump %for j = 1,1,N
-			%else
-				%if (otype = 0) %start
-                    ! %const .... %name
-					! JDM JDM attempt to allow assignment of %const ... %name
-					decvar_scope = COT
-					decvar_level = 0
-					decvar_disp = own val
-				%else
-					! non-array normal variables
-					decvar_level = 0
-					%if (otype = con) %start
-						! constant - must be string or real type, because
-						! const integers are substituted by value in Pass 1
-						! Constant strings and reals are treated as literals
-						decvar_scope = COT
-						%if (own type = string) %start
-							decvar_disp = getcots(current string)
-						%else
-							%if (own type = real) %or (own type = lreal) %start
-								! constant reals are put in the COT.  Depending on how
-								! the value was formed, ReadReal may have already planted this.
-								! Not to worry, because "real constant" will find it again.
-								decvar_disp = getcotdouble(rvalue)
-							%else
-								abort("Init?")
-							%finish
-						%finish
-					%else
-						! must be %own or %external - use adump to put it in DATA segment
-						decvar_scope = DATA
-						decvar_disp = datatp
-						adump
-					%finish
-				%finish
-			%finish
-		%end
+            %if (own form = array) %or (own form = name array) %start
+                adump %for j = 1,1,N
+            %finish %else %if (otype = 0) %start
+                ! %const .... %name
+                ! JDM JDM attempt to allow assignment of %const ... %name
+                decvar_scope = COT
+                decvar_level = 0
+                decvar_disp = own val
+            %finish %else %start
+                ! non-array normal variables
+                decvar_level = 0
+                %if (otype = con) %start
+                    ! constant - must be string or real type, because
+                    ! const integers are substituted by value in Pass 1
+                    ! Constant strings and reals are treated as literals
+                    decvar_scope = COT
+                    %if (own type = string) %start
+                        decvar_disp = getcots(current string)
+                    %finish %else %if (own type = real) %or (own type = lreal) %start
+                        ! constant reals are put in the COT.  Depending on how
+                        ! the value was formed, ReadReal may have already planted this.
+                        ! Not to worry, because "real constant" will find it again.
+                        decvar_disp = getcotdouble(rvalue)
+                    %finish %else %start
+                        abort("Init?")
+                    %finish
+                %finish %else %start
+                    ! must be %own or %external - use adump to put it in DATA segment
+                    decvar_scope = DATA
+                    decvar_disp = datatp
+                    adump
+                %finish
+            %finish
+        %end
 
-		%routine User Jump( %integer label )
+        %routine User Jump( %integer label )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6579,10 +6591,10 @@ done:
             %finish
             ! JDM JDM end debug
 
-			dumpjump(JMP, user label( label ))
-		%end
+            dumpjump(JMP, user label( label ))
+        %end
 
-		%routine Define User Label( %integer label )
+        %routine Define User Label( %integer label )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6593,10 +6605,10 @@ done:
             %finish
             ! JDM JDM end debug
 
-			dump label(user label( label ))
-		%end
+            dump label(user label( label ))
+        %end
 
-		%routine Return( %integer mode )
+        %routine Return( %integer mode )
             ! JDM JDM replaces sequence of %if .. %then .. %else code
             ! to use %switch layout for clarity
             %switch sw(map:false)
@@ -6611,9 +6623,9 @@ done:
                     monitor(top, "RESULT MAP")
                 %finish
 
-				amap(top)
-				loadreg(top, EAX)
-				pop rel
+                amap(top)
+                loadreg(top, EAX)
+                pop rel
                 -> esac
 
             sw(fn):
@@ -6690,36 +6702,24 @@ done:
                 -> esac
 
             sw(routine):
-				! no need to do anything special
+                ! no need to do anything special
                 -> esac
 
             sw(true):
-				dumpri(MOV, EAX, -1)
+                dumpri(MOV, EAX, -1)
                 -> esac
 
             sw(false):
-				dumpri(MOV, EAX, 0)
+                dumpri(MOV, EAX, 0)
                 -> esac
 
             esac:
 
-			dump return
-		%end
-
-		%routine Load Return( %integer mode )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-        
-            Return( mode )
+            dump return
         %end
 
-		%routine Dimension( %integer dim, n )
-			%integer i,j, useCOT, descriptor
+        %routine Dimension( %integer dim, n )
+            %integer i,j, useCOT, descriptor
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6732,100 +6732,100 @@ done:
             %finish
             ! JDM JDM end debug
 
-			! Validate the ICODE Parameters
-			abort("Array Dim") %unless (0 < dim < 6)
+            ! Validate the ICODE Parameters
+            abort("Array Dim") %unless (0 < dim < 6)
 
-			%if (in params # 0) %start
+            %if (in params # 0) %start
                 ! This is an Array inside a Record
                 ! NB. Only 1D arrays are allowed in a record!
                 ! Defended against by the IMP grammar
                 ! Hence the simplified code for a Dope Vector creation
-				parms = parms + n
-				vub = top_disp
+                parms = parms + n
+                vub = top_disp
                 pop stack
-				vlb = top_disp
+                vlb = top_disp
                 pop stack
-				abort("Array Bounds") %if (vlb > vub)
-				dv = set dope vector( data size, array entry type )
+                abort("Array Bounds") %if (vlb > vub)
+                dv = set dope vector( data size, array entry type )
             %else
-				names = names - n
+                names = names - n
 
                 ! We should check to see if we can store the DopeVector in
                 ! the COT table or on the machine stack
                 ! Assume we have constant array bounds
                 useCOT = 1
-				! Now iterate over the bounds
-				j = 0
+                ! Now iterate over the bounds
+                j = 0
                 ! points to before the first stack value
-				%for i=1,1,dim*2 %cycle
-					j = j + 1
+                %for i=1,1,dim*2 %cycle
+                    j = j + 1
                     lhs == stack(j)
                     ! Determine if any bound is defined by a variable
-					%if (lhs_form # constant) %start
+                    %if (lhs_form # constant) %start
                         ! Drat! One of the bounds is NOT constant
                         ! So, we'll have to store the DV on the stack
                         useCOT = 0
-					%finish
-				%repeat
+                    %finish
+                %repeat
 
-				! Now to plant code to manufacture space for a Dope Vector
+                ! Now to plant code to manufacture space for a Dope Vector
                 ! original DV definition
                 !   :Dim:<bound pairs>:DataSize:
                 ! new DV definition
                 !   :Dim:<bound pairs>:DataSize<<5!DataType<<1!1:
-				frame = (frame - 2*word size*(dim + 1) )&(\align)
-				dv = frame
+                frame = (frame - 2*word size*(dim + 1) )&(\align)
+                dv = frame
 
-				! First store the dimension (constant value)
-				dumpmi(MOV, EBP, dv, 0, dim)
+                ! First store the dimension (constant value)
+                dumpmi(MOV, EBP, dv, 0, dim)
 
-				! Now the bounds (which may not be constant)
-				j = 0
+                ! Now the bounds (which may not be constant)
+                j = 0
                 ! points to before the first stack value
-				%for i=1,1,dim*2 %cycle
-					j = j + 1
+                %for i=1,1,dim*2 %cycle
+                    j = j + 1
                     lhs == stack(j)
-					%if (lhs_form = constant) %start
-						dumpmi(MOV, EBP, dv + (i*word size), 0, lhs_disp)
-					%else
-						loadreg(lhs, any)
-						dumpmr(MOV, EBP, dv + (i*word size), 0, lhs_base)
-					%finish
-				%repeat
+                    %if (lhs_form = constant) %start
+                        dumpmi(MOV, EBP, dv + (i*word size), 0, lhs_disp)
+                    %else
+                        loadreg(lhs, any)
+                        dumpmr(MOV, EBP, dv + (i*word size), 0, lhs_base)
+                    %finish
+                %repeat
 
-				! And the data size is also constant
+                ! And the data size is also constant
                 ! JDM JDM enhancement
                 ! Make DV _size field to be a size/type/flag format descriptor
                 descriptor = (data size<<5) ! ((array entry type&15)<<1) ! 1
-				dumpmi(MOV, EBP, dv + (2*dim + 1) * word size, 0, descriptor )
+                dumpmi(MOV, EBP, dv + (2*dim + 1) * word size, 0, descriptor )
 
-				! Now we need to allocate the space for the array
+                ! Now we need to allocate the space for the array
                 ! Depending on the number of array dimensions
-				%if (dim > 1) %or (control&check array # 0) %start
-					! Do it with the PERM
-					%while (stp # 0) %cycle
+                %if (dim > 1) %or (control&check array # 0) %start
+                    ! Do it with the PERM
+                    %while (stp # 0) %cycle
                         ! get rid of all the bounds
                         !     they are in the DV already
-						pop rel
-					%repeat
+                        pop rel
+                    %repeat
 
-					dumprm(LEA, EAX, EBP, dv, 0)
-					dumpur(PUSH, EAX)
-					perm(adef, 1)
+                    dumprm(LEA, EAX, EBP, dv, 0)
+                    dumpur(PUSH, EAX)
+                    perm(adef, 1)
 
-					! We now need to make our result match the in-line version
-					! by putting EAX and EDX into stack-like variables
-					push const(0)
+                    ! We now need to make our result match the in-line version
+                    ! by putting EAX and EDX into stack-like variables
+                    push const(0)
                     lhs == top
 
                     push const(0)
                     rhs == top
-	
+
                     lhs_base = EAX
                     lhs_form = V in R
                     claim(EAX)
 
-					rhs_base = EDX
+                    rhs_base = EDX
                     rhs_form = V in R
                     claim(EDX)
 
@@ -6839,72 +6839,72 @@ done:
                     
                     ! suck up the lower bound
                     push copy(stack(stp-1))
-					push const(data size)
-					Operation(MULx)
-					! top is now the lower bound,
+                    push const(data size)
+                    Operation(MULx)
+                    ! top is now the lower bound,
                     ! next is the upper,
                     ! and a bogus copy of lb is next
-					loadreg(top, any);   ! Make sure this is in a register
-					lhs == top;          ! Point to it
-					pop stack;           ! and drop (without release) this copy
-					loadreg(top, any);   ! This is now UB - load it in a register as well
-					rhs == top;          ! Point to it
-					pop stack;           ! and keep RHS (Upper)
-					pop stack;           ! dump the bogus lb
-				%finish
+                    loadreg(top, any);   ! Make sure this is in a register
+                    lhs == top;          ! Point to it
+                    pop stack;           ! and drop (without release) this copy
+                    loadreg(top, any);   ! This is now UB - load it in a register as well
+                    rhs == top;          ! Point to it
+                    pop stack;           ! and keep RHS (Upper)
+                    pop stack;           ! dump the bogus lb
+                %finish
 
-				! Note - there are 4 GP registers, and we're going to need them ALL here
-				t = gp reg;             ! get a working register for the dope vector address
-				dumprm(LEA, t, EBP, dv, 0); ! load it
-				dv = t
+                ! Note - there are 4 GP registers, and we're going to need them ALL here
+                t = gp reg;             ! get a working register for the dope vector address
+                dumprm(LEA, t, EBP, dv, 0); ! load it
+                dv = t
                 claim(dv);               ! use this to hold the register number
-				t = gp reg;              ! the last one! (which we don't claim, 'cos we can't lose it)
-				dumprr(MOV, t, ESP);     ! working copy of SP so that real SP is always "OK"
-			%finish
+                t = gp reg;              ! the last one! (which we don't claim, 'cos we can't lose it)
+                dumprr(MOV, t, ESP);     ! working copy of SP so that real SP is always "OK"
+            %finish
 
-			%for i = 1,1,n %cycle
-				decvar_dim = dim
-				%if (in params = 0) %start
+            %for i = 1,1,n %cycle
+                decvar_dim = dim
+                %if (in params = 0) %start
                     !  array not in record
-					names = names+1
+                    names = names+1
                     decvar == var(names)
-					decvar_level = level
-					frame = frame - (word size * 2);  ! 2-word header
-					decvar_disp = frame
+                    decvar_level = level
+                    frame = frame - (word size * 2);  ! 2-word header
+                    decvar_disp = frame
 
                     ! force arrayname?
-					%if (decvar_form = array) %or (decvar_form = namearray) %then decvar_form = decvar_form + 1
+                    %if (decvar_form = array) %or (decvar_form = namearray) %then decvar_form = decvar_form + 1
 
-					dumprr(SUB, t, rhs_base)
-					dumpmr(MOV, EBP, frame, 0, t);             ! store a(0) address
-					dumpmr(MOV, EBP, frame + word size, 0, dv);! store dope vector pointer
-					dumprr(ADD, t, lhs_base)
-				%else
+                    dumprr(SUB, t, rhs_base)
+                    dumpmr(MOV, EBP, frame, 0, t);             ! store a(0) address
+                    dumpmr(MOV, EBP, frame + word size, 0, dv);! store dope vector pointer
+                    dumprr(ADD, t, lhs_base)
+                %else
                     ! array-in-record
-					parms = parms-1
+                    parms = parms-1
                     decvar == var(parms)
-					decvar_disp = frame - vlb
+                    decvar_disp = frame - vlb
 
                     ! noting that Set Dope Vector has changed VUB to the array size
-					frame = frame + vub
-					decvar_pbase = dv
-				%finish
-			%repeat
+                    frame = frame + vub
+                    decvar_pbase = dv
+                %finish
+            %repeat
 
-			%if (in params = 0) %start
-				! We need to keep the stack pointer word aligned 
+            %if (in params = 0) %start
+                ! We need to keep the stack pointer word aligned 
                 ! - 8086's run faster that way,
-				! and more importantly,
+                ! and more importantly,
                 !     Pentiums throw an exception if you don't!
-				%if (data size&align # 0) %then dumpri(AND, t, \align)
-				dumprr(MOV,ESP,t)
-				release(lhs_base)
-				release(rhs_base)
-				release(dv)
-			%finish
-		%end
+                %if (data size&align # 0) %then dumpri(AND, t, \align)
+                dumprr(MOV,ESP,t)
+                release(lhs_base)
+                release(rhs_base)
+                release(dv)
+            %finish
+        %end
 
-		%routine Update Line( %integer line )
+        %routine Update Line( %integer line )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6915,20 +6915,20 @@ done:
             %finish
             ! JDM JDM end debug
 
-			current line = line
-			abort("Stack?") %if (stp # 0)
-			abort("Claimed") %if (claimed # 0)
-			! Pass1 sends the line number multiple times if there's more than
-			! one statement per line - for debugging we only want "real" line numbers
-			%if (echo line < current line) %start
-				dump line number(current line)
-				%while (echo line < current line) %cycle
-					echo source line
-				%repeat
-			%finish
-		%end
+            current line = line
+            abort("Stack?") %if (stp # 0)
+            abort("Claimed") %if (claimed # 0)
+            ! Pass1 sends the line number multiple times if there's more than
+            ! one statement per line - for debugging we only want "real" line numbers
+            %if (echo line < current line) %start
+                dump line number(current line)
+                %while (echo line < current line) %cycle
+                    echo source line
+                %repeat
+            %finish
+        %end
 
-		%routine Switch Jump( %integer switch id )
+        %routine Switch Jump( %integer switch id )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6941,16 +6941,16 @@ done:
             %finish
             ! JDM JDM end debug
 
-			v == var( switch id )
-			push const(word size)
+            v == var( switch id )
+            push const(word size)
             Operation(MULx);        ! subscript X Word Size
-			loadreg(top, anyp)
-			dumpum(JMP, SWT!top_base, v_disp * word size, 0);	! swtab is word-size
-			pop rel
-			uncond jump = next cad
-		%end
+            loadreg(top, anyp)
+            dumpum(JMP, SWT!top_base, v_disp * word size, 0);       ! swtab is word-size
+            pop rel
+            uncond jump = next cad
+        %end
 
-		%routine Set Record Format( %integer format id )
+        %routine Set Record Format( %integer format id )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6964,11 +6964,11 @@ done:
             %finish
             ! JDM JDM end debug
 
-			top_format = format id
-			top_type   = record
-		%end
+            top_format = format id
+            top_type   = record
+        %end
 
-		%routine Switch Label( %integer switch label )
+        %routine Switch Label( %integer switch label )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -6981,37 +6981,25 @@ done:
             %finish
             ! JDM JDM end debug
 
-			v == var( switch label )
-			uncond jump = 0
-			j = top_disp
+            v == var( switch label )
+            uncond jump = 0
+            j = top_disp
             pop stack
             
             t = new tag
-			dumplabel(t);
-			swtab(v_disp+j) = t;
-		%end
-
-		%routine Constant Bounds
-			vub = top_disp
-            pop stack
-
-			vlb = top_disp
-            pop stack
-		%end
-
-		%routine Load Constant Bounds
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Constant Bounds
+            dumplabel(t);
+            swtab(v_disp+j) = t;
         %end
 
-		%routine Internal Handler ( %integer id )
+        %routine Constant Bounds
+            vub = top_disp
+            pop stack
+
+            vlb = top_disp
+            pop stack
+        %end
+
+        %routine Internal Handler ( %integer id )
             %record(stackfm)%name  lh,rh
             %record(stackfm)  temp
 
@@ -7027,7 +7015,7 @@ done:
             rh = temp
 
             ! Now, stack the event_event value
-			push const( id )
+            push const( id )
             ! JDM JDM extra feature - report the line invoking the %signal
             ! (extra parameter added to impsignal)
             push const( current line )
@@ -7039,11 +7027,11 @@ done:
             loadreg(top, any); dumpur(PUSH, top_base); pop rel; ! extra
 
             ! call imp signal, then pop the 4 parameters from the stack
-			perm(signal, 4)
-			uncond jump = next cad %if (id # -1);     ! %monitor will return
-		%end
+            perm(signal, 4)
+            uncond jump = next cad %if (id # -1);     ! %monitor will return
+        %end
 
-		%routine Signal Event( %integer event id )
+        %routine Signal Event( %integer event id )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -7054,26 +7042,14 @@ done:
             %finish
             ! JDM JDM end debug
 
-			Internal Handler ( event id )
-		%end
-
-		%routine Monitor
-			Internal Handler ( -1 )
-		%end
-
-        %routine Load Monitor
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Monitor
+            Internal Handler ( event id )
         %end
 
-		%routine SelectField( %integer field index )
+        %routine Monitor
+            Internal Handler ( -1 )
+        %end
+
+        %routine SelectField( %integer field index )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -7084,50 +7060,50 @@ done:
             %finish
             ! JDM JDM end debug
 
-			! Contrary to earlier iCode versions, this one seems to use 'n' for
-			! both normal record member access and alternate formats?
+            ! Contrary to earlier iCode versions, this one seems to use 'n' for
+            ! both normal record member access and alternate formats?
 
             ! Points to the base record
-			lhs == top
+            lhs == top
 
             ! Push descriptor for the i-th member
-			Stack Var(var(top_format)_pbase - field index)
+            Stack Var(var(top_format)_pbase - field index)
 
-			%if (top_aform # recordformat) %start
+            %if (top_aform # recordformat) %start
                 !  not record format - must be a member
-				%if (lhs_form = V in S) %or (lhs_form = V in REC) %start
-					top_disp = top_disp + lhs_disp
-					lhs_form = lhs_form - V in S + top_form
-				%else
-					%if (lhs_form = A in REC) %start
-						lhs_form = V in REC
+                %if (lhs_form = V in S) %or (lhs_form = V in REC) %start
+                    top_disp = top_disp + lhs_disp
+                    lhs_form = lhs_form - V in S + top_form
+                %else
+                    %if (lhs_form = A in REC) %start
+                        lhs_form = V in REC
                         lhs_type = integer
-						loadreg(lhs,any)
-						lhs_form = top_form
-					%else
-						%if (lhs_form <= V in R) %start
-							lhs_form = top_form;    ! ????
-						%else
+                        loadreg(lhs,any)
+                        lhs_form = top_form
+                    %else
+                        %if (lhs_form <= V in R) %start
+                            lhs_form = top_form;    ! ????
+                        %else
                             ! A in S
-							lhs_extra = lhs_disp
-							lhs_form = top_form + 3
-						%finish
-					%finish
-				%finish
-				lhs_disp = top_disp
-				lhs_type = top_type
-				lhs_aform = top_aform
-				lhs_dim = top_dim
-			%finish
-			lhs_size = top_size
+                            lhs_extra = lhs_disp
+                            lhs_form = top_form + 3
+                        %finish
+                    %finish
+                %finish
+                lhs_disp = top_disp
+                lhs_type = top_type
+                lhs_aform = top_aform
+                lhs_dim = top_dim
+            %finish
+            lhs_size = top_size
             lhs_format = top_format
-			pop stack
-		%end
+            pop stack
+        %end
 
-		%routine EventTrap( %integer anevent, evfrom )
-			! events: Events to trap (then comma)
-			! evfrom: Label to skip to
-			%integer temp
+        %routine EventTrap( %integer anevent, evfrom )
+            ! events: Events to trap (then comma)
+            ! evfrom: Label to skip to
+            %integer temp
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -7140,51 +7116,39 @@ done:
             %finish
             ! JDM JDM end debug
 
-			events = anevent
-			temp = getwork(word size);	    ! get a temp location for SP
-			dumpmr(MOV, EBP, temp, 0, ESP);	! because our signaller doesn't restore it
-			jump to(evfrom, JMP, 1);	    ! go there now
-			! We need to make EVFROM into a label ID that pass 3 will recognise
-			! to build the trap table, so Jump To sets a variable we pick up here...
-			evfrom = J Tag
-			evep = new tag;				    ! tag for the event body entry point
-			dump label(evep);			    ! which is here
-			dumprm(MOV, ESP, EBP, temp, 0);	! First thing we do is restore SP
-		%end
-
-		%routine DoubleOp( %integer opr )
-			%integer j,t
-
-			lhs == stack(stp-1)
-			t = lhs_type;
-			j = lhs_size
-			j = j+1 %if t = string
-			amap(lhs)
-			abort("++/-- size") %if (j = 0)
-			push const(j)
-			Operation(MULx)
-			Operation(opr)
-			vmap(top)
-            top_type = t
-		%end
-
-        %routine Load DoubleOp( %integer opr )
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            DoubleOp( opr )
+            events = anevent
+            temp = getwork(word size);      ! get a temp location for SP
+            dumpmr(MOV, EBP, temp, 0, ESP); ! because our signaller doesn't restore it
+            jump to(evfrom, JMP, 1);        ! go there now
+            ! We need to make EVFROM into a label ID that pass 3 will recognise
+            ! to build the trap table, so Jump To sets a variable we pick up here...
+            evfrom = J Tag
+            evep = new tag;                 ! tag for the event body entry point
+            dump label(evep);               ! which is here
+            dumprm(MOV, ESP, EBP, temp, 0); ! First thing we do is restore SP
         %end
 
-		%routine Set Diagnose(%integer Value)
+        %routine DoubleOp( %integer opr )
+            %integer j,t
+
+            lhs == stack(stp-1)
+            t = lhs_type
+            j = lhs_size
+            j = j+1 %if t = string
+            amap(lhs)
+            abort("++/-- size") %if (j = 0)
+            push const(j)
+            Operation(MULx)
+            Operation(opr)
+            vmap(top)
+            top_type = t
+        %end
+
+        %routine Set Diagnose(%integer Value)
 
             ! JDM JDM set value for the appropriate compiler pass
             ! In this case we are in pass2
-			diagnose = (Value&x'3FFF') %if (Value&x'C000' = (PassId&3)<<14)
+            diagnose = (Value&x'3FFF') %if (Value&x'C000' = (PassId&3)<<14)
 
             ! use the updated diagnose value
             ! JDM JDM debug show the iCode instruction
@@ -7196,9 +7160,9 @@ done:
             %finish
             ! JDM JDM end debug
 
-		%end
+        %end
 
-		%routine Set Control(%integer Value)
+        %routine Set Control(%integer Value)
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -7211,77 +7175,78 @@ done:
 
             ! JDM JDM set value for the appropriate compiler pass
             ! In this case we are in pass2
-			control = Value&x'3FFF' %if (Value&x'C000' = (PassId&3)<<14)
-		%end
+            control = Value&x'3FFF' %if (Value&x'C000' = (PassId&3)<<14)
+        %end
 
-		%predicate Finish Params
-			%integer j
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
+        %predicate Finish Params
+            %integer j
 
             in params = 0
 
-			%true %if (amode < 0);            ! end of %record %format defn.
-			%true %if (procvar_level = 128);  ! prim routine reference
+            %true %if (amode < 0);            ! end of %record %format defn.
+            %true %if (procvar_level = 128);  ! prim routine reference
 
-			! Here it's a real subroutine - copy any parameters to the PARM area
-			%if (names > first name) %start
+            ! Here it's a real subroutine - copy any parameters to the PARM area
+            %if (names > first name) %start
                 procvar_pbase = parms;  ! Point one beyond the first parameter
-				frame = (frame + align) & (\align);	! Even up the stack size
-				%if (procvar_type = string) %and (procvar_form = 8) %start
-					frame = frame + word size;  ! string functions have a hidden result parameter
-				%finish
-				procvar_extra = frame;             ! Remember the stack offset
-				procvar_dim = names - first name;  ! and the number of parameters
-				frame = frame + (2 * word size);   ! leave space for return linkage (EIP + EBP)
-				%for j = first name+1, 1, names %cycle
-					ap == var(j)
-					parms = parms-1
+                frame = (frame + align) & (\align); ! Even up the stack size
+                %if (procvar_type = string) %and (procvar_form = 8) %start
+                    frame = frame + word size;  ! string functions have a hidden result parameter
+                %finish
+                procvar_extra = frame;             ! Remember the stack offset
+                procvar_dim = names - first name;  ! and the number of parameters
+                frame = frame + (2 * word size);   ! leave space for return linkage (EIP + EBP)
+                %for j = first name+1, 1, names %cycle
+                    ap == var(j)
+                    parms = parms-1
                     fp == var(parms)
-					fp = ap
-					! formal parameter base and displacement is implicit (on the stack)
-					fp_level = 0
-					! we also need to adjust the offsets of the actual parameters, because
-					! they were allocated going "forwards", but will be pushed on the stack
-					! "backwards" - that is, the first item passed will end up with the
-					! highest address.  DefineVar has done part of the work for us by tagging
-					! the displacements in the right style, but it can't tell the whole frame
-					! offset, so we calculate the final offsets here...
-					ap_disp = frame - ap_disp
-				%repeat
-				abort("Params (names=".itos(names,0)." parms=".itos(parms,0).")") %if parms < names
-			%finish
-			%true %if (amode = 2);  ! this was just a spec
-			dumplabel(procvar_disp)
-			static alloc = enter
-			frame = -(level * word size);  ! one word for each display entry
-			%false
-		%end
+                    fp = ap
+                    ! formal parameter base and displacement is implicit (on the stack)
+                    fp_level = 0
+                    ! we also need to adjust the offsets of the actual parameters, because
+                    ! they were allocated going "forwards", but will be pushed on the stack
+                    ! "backwards" - that is, the first item passed will end up with the
+                    ! highest address.  DefineVar has done part of the work for us by tagging
+                    ! the displacements in the right style, but it can't tell the whole frame
+                    ! offset, so we calculate the final offsets here...
+                    ap_disp = frame - ap_disp
+                %repeat
+                abort("Params (names=".itos(names,0)." parms=".itos(parms,0).")") %if parms < names
+            %finish
+
+            %true %if (amode = 2);  ! this was just a spec
+
+            dumplabel(procvar_disp)
+            static alloc = enter
+            frame = -(level * word size);  ! one word for each display entry
+            %false
+        %end
 
         %routine Start Params
 
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
             in params = -1
-			! this is either
+            ! this is either
             ! a record format,
             ! a procedure,
             ! or a proc spec;
-			!   - block type was set by decvar to tell us which
-			assemble(block type,labs,names);
+            !   - block type was set by decvar to tell us which
+            assemble(block type,labs,names);
         %end
 
-		%predicate AlternateFormat( %integer N )
+        ! alt start
+        %routine AlternateStart
+            decvar == procvar
+            assemble(-2,labs,names)
+        %end
+
+        ! alt next
+        %routine AlternateNext
+            ! Compile the next alternate - update limit and set frame back to where we started
+            max frame = frame %if (frame > max frame)
+            frame = old frame
+        %end
+
+        %predicate AlternateFormat( %integer N )
 
             ! JDM JDM debug show the iCode instruction
             %if (diagnose&16 # 0) %start
@@ -7292,25 +7257,25 @@ done:
             %finish
             ! JDM JDM end debug
 
-			! Check the ICODE for faults
+            ! Check the ICODE for faults
             ! and abort for any faulty intermediate code
-			abort("Alt Record '".tostring(N)."'.") %unless (N = 'A') %or (N = 'B') %or (N = 'C')
+            abort("Alt Record '".tostring(N)."'.") %unless (N = 'A') %or (N = 'B') %or (N = 'C')
 
-			%true %if (N = 'B');             ! alt end
+            %true %if (N = 'B');             ! alt end
 
-			%if (N = 'A') %start
+            %if (N = 'A') %start
                 ! alt start
-				decvar == procvar
-				assemble(-2,labs,names)
-			%finish
+                decvar == procvar
+                assemble(-2,labs,names)
+            %finish
 
-			%if (N = 'C') %start
-				! Compile the next alternate - update limit and set frame back to where we started
-				max frame = frame %if (frame > max frame)
-				frame = old frame
-			%finish
-			%false
-		%end
+            %if (N = 'C') %start
+                ! Compile the next alternate - update limit and set frame back to where we started
+                max frame = frame %if (frame > max frame)
+                frame = old frame
+            %finish
+            %false
+        %end
 
         %routine  Plant
             ! Plant in-line code values (from "*=constant")
@@ -7330,18 +7295,6 @@ done:
 
             ! JDM JDM empty the icode stack
             pop stack
-        %end
-
-        %routine Load Plant
-
-            ! JDM JDM debug show the iCode instruction
-            %if (diagnose&16 # 0) %start
-                ListICode
-                newline
-            %finish
-            ! JDM JDM end debug
-
-            Plant
         %end
 
         %include "machinecode.inc"
@@ -7393,105 +7346,453 @@ done:
             max frame = frame
         %finish
 
-		!  --- main compilation loop ---
-		%cycle
-			iCodeInst = read iCode
+        !  --- main compilation loop ---
+        %cycle
+            iCodeInst = read iCode
 
             ! count how many iCode instructions have been read
             iCodeCount = iCodeCount + 1
 
             ! defend against illegal iCode instructions
             %if (getiCodeName(iCodeInst)="ILLEGAL") %start
-				selectoutput(0)
-				printsymbol('(')
+                selectoutput(0)
+                printsymbol('(')
                 write(iCodeInst, 0)
                 printsymbol(',')
                 write(lookahead icode, 0)
                 printsymbol(')')
-				abort("Bad I Code")
-			%finish
+                abort("Bad I Code")
+            %finish
             ! From this point the iCodeInst is a legal iCode
             ! Hopefully the iCode instruction parameters are valid
 
-			-> c(iCodeInst)
+            -> c(iCodeInst)
 
-c(iCodeOR):        Load Operation( ORx );                 %continue
-c(iCodeCOMPARED):  Load Compare Double;                   %continue
-c(iCodeJNE):       Jump Forward( ReadTag, NE );           %continue
-c(iCodeDEF):       Define Var( ReadTag, Get Ascii( ',' ), ReadTagComma, ReadTagComma, ReadTag );  %continue
-c(iCodeXOR):       Load Operation( XORx );                %continue
-c(iCodeAND):       Load Operation( ANDx );                %continue
-c(iCodePUSHS):     Input String Value( ReadString );      %continue; ! Stack string constant
-c(iCodeJLE):       Jump Forward( ReadTag, LE );           %continue
-c(iCodeJGE):       Jump Forward( ReadTag, GE );           %continue
-c(iCodeMUL):       Load Operation( MULx );                %continue
-c(iCodeADD):       Load Operation( ADDx );                %continue
-c(iCodeSUB):       Load Operation( SUBx );                %continue
-c(iCodeCONCAT):    Load Operation( CONCx );               %continue
-c(iCodeQUOT):      Load Operation( DIVx );                %continue
-c(iCodeLOCATE):    Define Compiler Label( ReadTag );      %continue; ! Define compiler label
-c(iCodeEND):       Load End of Block;                     %exit
-c(iCodeJL):        Jump Forward( ReadTag, LT );           %continue
-c(iCodeJE):        Jump Forward( ReadTag, EQ );           %continue
-c(iCodeJG):        Jump Forward( ReadTag, GT );           %continue
-c(iCodeCOMPARE):   Load Compare Values;                   %continue; ! Compare values
-c(iCodePUSH):      Load Var( ReadTag );                   %continue; ! Load variable descriptor (calls Stack Var)
-c(iCodeINIT):      Init( ReadTag );                       %continue; ! Initialise OWN variable
-c(iCodeREPEAT):    Jump Backward( ReadTag );              %continue; ! Backward Jump
-c(iCodeCOMPAREA):  Load Compare Addresses;                %continue; ! Compare addresses
-c(iCodePUSHR):     Input Real Value( ReadReal );          %continue; ! Stack real constant
-c(iCodeCALL):      Load Compile Call( top );              %continue
-c(iCodeGOTO):      Jump Forward( ReadTag, Always );       %continue; ! Forward Jump
-c(iCodeALIAS):     Get Alias Value( ReadString );         %continue; ! Alias for item about to be declared
-c(iCodeBEGIN):     Load Compile Begin;                    %continue; ! Start of BEGIN block
-c(iCodeJUMP):      User Jump( ReadTag );                  %continue; ! Jump to user label
-c(iCodeFALSE):     Load Return( False );                  %continue; ! %false
-c(iCodeLABEL):     Define User Label( ReadTag );          %continue; ! Define user label
-c(iCodeMAP):       Load Return( Map );                    %continue; ! MAP result
-c(iCodePUSHI):     Load Const( ReadInteger );             %continue; ! Load integer constant (calls Push Const)
-c(iCodeLINE):      Update Line( ReadTag );                %continue; ! Set line number
-c(iCodePLANT):     Load Plant;                            %continue; ! Machine code literal
-c(iCodeDIVIDE):    Load Operation( RDIVx );               %continue
-c(iCodeRETURN):    Load Return( Routine );                %continue; ! RETURN
-c(iCodeASSVAL):    Load Assign( 1 );                      %continue; ! Normal value assignment
-c(iCodeTRUE):      Load Return( True );                   %continue; ! %true
-c(iCodeNEGATE):    Load Operation(NEGx);                  %continue
-c(iCodeRESULT):    Load Return ( Fn );                    %continue; ! FN result
-c(iCodeSJUMP):     Switch Jump( ReadTag );                %continue; ! Jump to switch
-c(iCodeIEXP):      Load Operation( EXPx );                %continue
-c(iCodeASSREF):    Load Assign( 0 );                      %continue; ! Assign address '=='
-c(iCodeLSH):       Load Operation( LSHx );                %continue
-c(iCodeNOT):       Load Operation( NOTx );                %continue
-c(iCodeRSH):       Load Operation( RSHx );                %continue
-c(iCodeSETFORMAT): Set Record Format( ReadTag );          %continue; ! {Set Format}
-c(iCodeSLABEL):    Switch Label( ReadTag );               %continue; ! Define switch label
-c(iCodeACCESS):    Load Array Ref( 0 );                   %continue
-c(iCodeBOUNDS):    Load Constant Bounds;                  %continue; ! Define constant bounded Dope Vector
-c(iCodeDIM):       Dimension( ReadTagComma, ReadTag );    %continue; ! dimensions, count of variables - NB in params:  =0 -> simple array,  # 0 -> array-in-record
-c(iCodeEVENT):     Signal Event( ReadTag );               %continue; ! %signal event
-c(iCodeFOR):       Compile For( ReadTag );                %continue
-c(iCodeINDEX):     Load Array Ref( 1 );                   %continue
-c(iCodeJAM):       Load Assign( 2 );                      %continue; ! JAM transfer
-c(iCodeJZ):        Jump Forward( ReadTag, FF );           %continue; ! Branch on FALSE (= 0)
-c(iCodeLANG):      Load Language Flags( ReadTag );        %continue; ! We currently only support standard IMP - who knows the future
-c(iCodeMONITOR):   Load Monitor;                          %continue; ! %monitor
-c(iCodeSELECT):    SelectField( ReadTag );                %continue; ! Select member from record format
-c(iCodeON):        EventTrap( ReadTagComma, ReadTag );    %continue; ! %on %event block
-c(iCodeASSPAR):    Load Assign( -1 );                     %continue; ! Pass a parameter
-c(iCodeSUBA):      Load DoubleOp( SUBx);                  %continue; !--
-c(iCodeRESOLVE):   Resolve( ReadTag );                    %continue
-c(iCodeSTOP):      Load Perm(stop, 0);                    %continue; ! %stop
-c(iCodeJNZ):       Jump Forward( ReadTag, TT );           %continue; ! Branch on TRUE (# 0)
-c(iCodeADDA):      Load DoubleOp( ADDx );                 %continue; !++
-c(iCodeMOD):       Load Operation( ABSx );                %continue
-c(iCodeMCODE):     Machine Code( Get Ascii( ';' ) );      %continue; ! JDM JDM: escape to machine assembler code
-c(iCodeREXP):      Load Operation(REXPx);                 %continue
-c(iCodeDIAG):      Set Diagnose( ReadTag );               %continue; ! %diagnose n (what about pass3? how do we send to pass3)
-c(iCodeCONTROL):   Set Control( ReadTag );                %continue; ! %control n
-c(iCodeSTART):     StartParams;                           %continue; ! Start of formal parameters
-c(iCodeFINISH):    %exit %if Finish Params;               %continue; ! End of formal parameters
-c(iCodeALT):       %exit %if AlternateFormat( ReadByte ); %continue; ! alternate record format
-c(*):       abort("Bad I Code");				                     ! To catch the sinners!! (that is - an unimplemented iCode)
+c(iCodeOR):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( ORx )
+            %continue
+
+c(iCodeCOMPARED):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Compare Double
+            %continue
+
+c(iCodeJNE):
+            Jump Forward( ReadTag, NE )
+            %continue
+
+c(iCodeDEF):
+            Define Var( ReadTag, Get Ascii( ',' ), ReadTagComma, ReadTagComma, ReadTag )
+            %continue
+
+c(iCodeXOR):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( XORx )
+            %continue
+
+c(iCodeAND):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( ANDx )
+            %continue
+
+c(iCodePUSHS):
+            ! Stack string constant
+            Input String Value( ReadString )
+            %continue
+
+c(iCodeJLE):
+            Jump Forward( ReadTag, LE )
+            %continue
+
+c(iCodeJGE):
+            Jump Forward( ReadTag, GE )
+            %continue
+
+c(iCodeMUL):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( MULx )
+            %continue
+
+c(iCodeADD):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( ADDx )
+            %continue
+
+c(iCodeSUB):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( SUBx )
+            %continue
+
+c(iCodeCONCAT):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( CONCx )
+            %continue
+
+c(iCodeQUOT):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( DIVx )
+            %continue
+
+c(iCodeLOCATE):
+            ! Define compiler label
+            Define Compiler Label( ReadTag )
+            %continue
+
+c(iCodeEND):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            End of Block
+            %exit
+
+c(iCodeJL):
+            Jump Forward( ReadTag, LT )
+            %continue
+
+c(iCodeJE):
+            Jump Forward( ReadTag, EQ )
+            %continue
+
+c(iCodeJG):
+            Jump Forward( ReadTag, GT )
+            %continue
+
+c(iCodeCOMPARE):
+            ! Compare values
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Compare Values
+            %continue
+
+c(iCodePUSH):
+            ! Load variable descriptor (calls Stack Var)
+            Load Var( ReadTag )
+            %continue
+
+c(iCodeINIT):
+            ! Initialise OWN variable
+            Init( ReadTag )
+            %continue
+
+c(iCodeREPEAT):
+            ! Backward Jump
+            Jump Backward( ReadTag )
+            %continue
+
+c(iCodeCOMPAREA):
+            ! Compare addresses
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Compare Addresses
+            %continue
+
+c(iCodePUSHR):
+            ! Stack real constant
+            Input Real Value( ReadReal )
+            %continue
+
+c(iCodeCALL):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Compile Call( top )
+            %continue
+
+c(iCodeGOTO):
+            ! Forward Jump
+            Jump Forward( ReadTag, Always )
+            %continue
+
+c(iCodeALIAS):
+            ! Alias for item about to be declared
+            Alias = ReadString
+            %if (diagnose&16 # 0) %start
+                ListICode
+                spaces(4)
+                printsymbol( '"' )
+                printstring( Alias )
+                printsymbol( '"' )
+                newline
+            %finish
+            %continue
+
+c(iCodeBEGIN):
+            ! Start of BEGIN block
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Compile Begin
+            %continue
+
+c(iCodeJUMP):
+            ! Jump to user label
+            User Jump( ReadTag )
+            %continue
+
+c(iCodeFALSE):
+            ! %false
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Return( False )
+            %continue
+
+c(iCodeLABEL):
+            ! Define user label
+            Define User Label( ReadTag )
+            %continue
+
+c(iCodeMAP):
+            ! MAP result
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Return( Map )
+            %continue
+
+c(iCodePUSHI):
+            ! Load integer constant (calls Push Const)
+            Load Const( ReadInteger )
+            %continue
+
+c(iCodeLINE):
+            ! Set line number
+            Update Line( ReadTag )
+            %continue
+
+c(iCodePLANT):
+            ! Machine code literal
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Plant
+            %continue
+
+c(iCodeDIVIDE):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( RDIVx )
+            %continue
+
+c(iCodeRETURN):
+            ! RETURN
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Return( Routine )
+            %continue
+
+c(iCodeASSVAL):
+            ! Normal value assignment
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Assign( 1 )
+            %continue
+
+c(iCodeTRUE):
+            ! %true
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Return( True )
+            %continue
+
+c(iCodeNEGATE):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( NEGx )
+            %continue
+
+c(iCodeRESULT):
+            ! FN result
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Return( Fn )
+            %continue
+
+c(iCodeSJUMP):
+            ! Jump to switch
+            Switch Jump( ReadTag )
+            %continue
+
+c(iCodeIEXP):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( EXPx )
+            %continue
+
+c(iCodeASSREF):
+            ! Assign address '=='
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Assign( 0 )
+            %continue
+
+c(iCodeLSH):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( LSHx )
+            %continue
+
+c(iCodeNOT):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( NOTx )
+            %continue
+
+c(iCodeRSH):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( RSHx )
+            %continue
+
+c(iCodeSETFORMAT):
+            ! {Set Format}
+            Set Record Format( ReadTag )
+            %continue
+
+c(iCodeSLABEL):
+            ! Define switch label
+            Switch Label( ReadTag )
+            %continue
+
+c(iCodeACCESS):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Array Ref( 0 )
+            %continue
+
+c(iCodeBOUNDS):
+            ! Define constant bounded Dope Vector
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Constant Bounds
+            %continue
+
+c(iCodeALTNEXT):
+            %if (diagnose&16 # 0) %then ListICode
+            AlternateNext
+            %continue
+
+c(iCodeDIM):
+            ! dimensions, count of variables
+            ! NB in params:  =0 -> simple array,  # 0 -> array-in-record
+            Dimension( ReadTagComma, ReadTag )
+            %continue
+
+c(iCodeEVENT):
+            ! %signal event
+            Signal Event( ReadTag )
+            %continue
+
+c(iCodeFOR):
+            Compile For( ReadTag )
+            %continue
+
+c(iCodeALTSTART):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            AlternateStart
+            %continue
+
+c(iCodeALTEND):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            ! do nothing but pop out of the loop
+            %exit
+
+c(iCodeINDEX):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Array Ref( 1 )
+            %continue
+
+c(iCodeJAM):
+            ! JAM transfer
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Assign( 2 )
+            %continue
+
+c(iCodeJZ):
+            ! Branch on FALSE (= 0)
+            Jump Forward( ReadTag, FF )
+            %continue
+
+c(iCodeLANG):
+            ! We currently only support standard IMP - who knows the future
+            Language Flags = ReadTag
+
+            %if (diagnose&16 # 0) %start
+                ListICode
+                spaces(4)
+                printstring( itos( Language Flags, 0 ) )
+                newline
+            %finish
+            %continue
+
+c(iCodeMONITOR):
+            ! %monitor
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Monitor
+            %continue
+
+c(iCodeSELECT):
+            ! Select member from record format
+            SelectField( ReadTag )
+            %continue
+
+c(iCodeON):
+            ! %on %event block
+            EventTrap( ReadTagComma, ReadTag )
+            %continue
+
+c(iCodeASSPAR):
+            ! Pass a parameter
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Assign( -1 )
+            %continue
+
+c(iCodeSUBA):
+            ! --
+            %if (diagnose&16 # 0) %then ListICodeLine
+            DoubleOp( SUBx )
+            %continue
+
+c(iCodeRESOLVE):
+            Resolve( ReadTag )
+            %continue
+
+c(iCodeSTOP):
+            ! %stop
+            %if (diagnose&16 # 0) %then ListICodeLine
+            perm( stop, 0 )
+            %continue
+
+c(iCodeJNZ):
+            ! Branch on TRUE (# 0)
+            Jump Forward( ReadTag, TT )
+            %continue
+
+c(iCodeADDA):
+            ! ++
+            %if (diagnose&16 # 0) %then ListICodeLine
+            DoubleOp( ADDx )
+            %continue
+
+c(iCodeMOD):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( ABSx )
+            %continue
+
+c(iCodeMCODE):
+            ! JDM JDM: escape to machine assembler code
+            Machine Code( Get Ascii( ';' ) )
+            %continue
+
+c(iCodeREXP):
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Operation( REXPx )
+            %continue
+
+c(iCodeDIAG):
+            ! %diagnose n (what about pass3? how do we send to pass3)
+            Set Diagnose( ReadTag )
+            %continue
+
+c(iCodeCONTROL):
+            ! %control n
+            Set Control( ReadTag )
+            %continue
+
+c(iCodeSTART):
+            ! Start of formal parameters
+            %if (diagnose&16 # 0) %then ListICodeLine
+            Start Params
+            %continue
+
+c(iCodeFINISH):
+            ! End of formal parameters
+            %if (diagnose&16 # 0) %then ListICodeLine
+            %exit %if Finish Params
+            %continue
+
+c(iCodeALT):
+            ! alternate record format
+            %exit %if AlternateFormat( ReadByte )
+            %continue
+
+c( * ):
+            ! To catch the sinners!! (that is - an unimplemented iCode)
+            abort("Bad I Code")
         %repeat
  
         %if (amode >= 0) %start
@@ -7526,10 +7827,7 @@ c(*):       abort("Bad I Code");				                     ! To catch the sinners!
         ! when reading the .icd or .imp source files
         block eof event
 
-!        %if (length( getenv( getenvindex( "IMP_ICODE" ) ) ) # 0) %start
-!            ! ok, we want to show the iCode records
-!            diagnose = 16
-!        %finish
+        ! Is there a shell variable (IMP_DIAGNOSE=NNN) override for diagnose?
         diagnose = get env as integer( "IMP_DIAGNOSE" )
 
         ! JDM JDM - Before we do any file I/O we need to get the source file name
@@ -7544,7 +7842,7 @@ c(*):       abort("Bad I Code");				                     ! To catch the sinners!
         ! Tell the IBJ buffer routines the objout stream#
         setibjoutstream( objout )
 
-        var(0) = 0;              !  for %RECORD(*) . . . . .
+        var(0) = 0;              !  for %RECORD( * ) . . . . .
         parms = max vars
 
         ! Initialise the GP Tag ASL
@@ -7582,5 +7880,11 @@ c(*):       abort("Bad I Code");				                     ! To catch the sinners!
     flush cot
     flush data
     flush switch
+
+    %if (diagnose&4 # 0) %start
+        debugnewline
+        debugstring(" Maximum depth of symbol stack = ".itos(get max tag,0))
+        debugnewline
+    %finish
 
 %endofprogram

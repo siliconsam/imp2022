@@ -35,6 +35,9 @@ const
     i3 : integer;
     i4 : integer;
     i5 : integer;
+    datum : integer;
+    count : integer;
+    specId : integer;
     offset : integer;
     name : string;
 
@@ -140,7 +143,8 @@ IF_REQEXT:
           name := copy(params[2],2,length(params[2]) - 2);
 
           if (newName( name ) = -1) then pass1error := true;
-          if (newSpec( findNameIndexByString( name ) ) = -1) then pass1error := true;
+          specId := newSpec( findNameIndexByString( name ) );
+          if (specId = -1) then pass1error := true;
 
           writeirecord( fout, IF_REQEXT, length( name ) shr 1 , formstring( name ) );
         end;
@@ -177,7 +181,9 @@ IF_COTWORD:
 
 IF_DATWORD:
         begin
-          writeirecord( fout, IF_DATWORD, length(params[1]) shr 1, params[1] );
+          datum := strToInt(params[1]);
+          count := strToInt(params[2]);
+          writeirecord( fout, IF_DATWORD, 4, formword(datum) + formword(count) );
         end;
 
 IF_SWTWORD:
@@ -198,6 +204,10 @@ IF_DEFEXTCODE:
           (* remove the enclosing string quotes *)
           name := copy(params[1],2,length(params[1]) - 2);
 
+          if (newName( name ) = -1) then pass1error := true;
+          specId := newSpec( findNameIndexByString( name ) );
+          if (specId = -1) then pass1error := true;
+
           writeirecord( fout, IF_DEFEXTCODE, length( name ), formstring( name ) );
         end;
 
@@ -205,6 +215,10 @@ IF_DEFEXTDATA:
         begin
           (* remove the enclosing string quotes *)
           name := copy(params[1],2,length(params[1]) - 2);
+
+          if (newName( name ) = -1) then pass1error := true;
+          specId := newSpec( findNameIndexByString( name ) );
+          if (specId = -1) then pass1error := true;
 
           writeirecord( fout, IF_DEFEXTDATA, length( name ), formstring( name ) );
         end;

@@ -1,42 +1,115 @@
 
 !----------------------------------------------------------------------
-! new symbol: REQEXT
+! Routines to handle Global symbols 
 !----------------------------------------------------------------------
-    %external %integer %fn %spec new symbol( %string(127) symbol name )
+!----------------------------------------------------------------------
+! new global: DEFEXTCODE, DEFEXTDATA
+!----------------------------------------------------------------------
+    %external %integer %fn %spec new global( %string(127) external name )
 
 !----------------------------------------------------------------------
-! reference symbol: REFEXT, ABSEXT
+! get global name: DEFEXTCODE, DEFEXTDATA
 !----------------------------------------------------------------------
-    %external %routine %spec reference symbol( %integer symbolid )
+    %external %string(127)%fn %spec get global name( %integer externalid )
 
 !----------------------------------------------------------------------
-! get symbol name: REFEXT, ABSEXT
+! get global id: DEFEXTCODE, DEFEXTDATA
 !----------------------------------------------------------------------
-    %external %string(127)%fn %spec get symbol name( %integer symbolid )
+    %external %integer %fn %spec get global id( %integer externalid )
 
 !----------------------------------------------------------------------
-! get symbol id: REFEXT, ABSEXT
+! associate local: DEFEXTCODE, FIXUP, DEFEXTDATA, LABEL
 !----------------------------------------------------------------------
-    %external %integer %fn %spec get symbol id( %integer symbolid )
+    %external %routine %spec associate local( %integer externalid,
+                                              %integer localid,
+                                              %string(127) name )
 
 !----------------------------------------------------------------------
-! get symbol valid: REFEXT, ABSEXT
+! get associate name: DEFEXTCODE, FIXUP, DEFEXTDATA, LABEL
 !----------------------------------------------------------------------
-    %external %byte %fn %spec get symbol valid( %integer symbolid )
+    %external %string(127)%fn %spec get associate name( %integer externalid )
 
 !----------------------------------------------------------------------
-! update all symbols
+! get associate id: DEFEXTCODE, FIXUP, DEFEXTDATA, LABEL
 !----------------------------------------------------------------------
-    %external %routine %spec update all symbols
+    %external %integer %fn %spec get associate id( %integer externalid )
 
 !----------------------------------------------------------------------
-! initialise symbols
+! dump globals
 !----------------------------------------------------------------------
-    %external %routine %spec initialise symbols
+    %external %routine %spec dump globals
 
 !----------------------------------------------------------------------
-! dump symbols
+! initialise globals
 !----------------------------------------------------------------------
-    %external %routine %spec dump symbols( %integer show all )
+    %external %routine %spec initialise globals
+!----------------------------------------------------------------------
+
+!----------------------------------------------------------------------
+! Routines to handle External symbols 
+!----------------------------------------------------------------------
+
+!----------------------------------------------------------------------
+! new external: REQEXT
+!----------------------------------------------------------------------
+    %external %integer %fn %spec new external( %string(127) symbol name )
+
+!----------------------------------------------------------------------
+! reference external: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+    %external %routine %spec reference external( %integer symbolid )
+
+!----------------------------------------------------------------------
+! get external name: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+    %external %string(127)%fn %spec get external name( %integer symbolid )
+
+!----------------------------------------------------------------------
+! get external id: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+    %external %integer %fn %spec get external id( %integer symbolid )
+
+!----------------------------------------------------------------------
+! get external valid: REFEXT, ABSEXT
+!----------------------------------------------------------------------
+    %external %byte %fn %spec get external valid( %integer symbolid )
+
+!----------------------------------------------------------------------
+! update all externals
+!----------------------------------------------------------------------
+    %external %routine %spec update all externals
+
+!----------------------------------------------------------------------
+! initialise externals
+!----------------------------------------------------------------------
+    %external %routine %spec initialise externals
+
+!----------------------------------------------------------------------
+! dump externals
+!----------------------------------------------------------------------
+    %external %routine %spec dump externals( %integer show all )
+
+!----------------------------------------------------------------------
+! local symbols
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+! new local
+!----------------------------------------------------------------------
+%external %integer %fn %spec new local( %integer line id, %string(127) local name )
+
+!----------------------------------------------------------------------
+! get local name: FIXUP
+!----------------------------------------------------------------------
+%external %string(127)%fn %spec get local name( %integer localid )
+
+!----------------------------------------------------------------------
+! dump locals
+!----------------------------------------------------------------------
+%external %routine %spec dump locals
+
+!----------------------------------------------------------------------
+! initialise locals
+!----------------------------------------------------------------------
+%external %routine %spec initialise locals
 
 %endoffile

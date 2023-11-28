@@ -29,8 +29,3 @@ FILE *getstdout()
 {
     return stdout;
 }
-
-//void fileputreal( double d, FILE *handle)
-//{
-//    fprintf( handle,"%1.15e",d);
-//}

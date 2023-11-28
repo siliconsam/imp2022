@@ -51,7 +51,6 @@
                BYTEINTEGER(16+2),                BYTE(16+2),
                SHORTINTEGER(16+3),               SHORT(16+3),
                LONGINTEGER(16+4),                LONG(16+4),
-               LONGLONGINTEGER(16+5),            LONGLONG(16+5),
                LONGREAL(32+4)
  29 ARRAY      ARRAY(2)
  30 NAME       NAME(1)

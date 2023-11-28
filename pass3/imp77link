@@ -16,6 +16,6 @@ do
     line=" $line $var.o"
 done
 
-line="$line ${IMPLIB} -lm -lc -T $LDSCRIPT"
+line="$line ${IMPLIB} -lm -lc -T ${LDSCRIPT}"
 
 eval $line

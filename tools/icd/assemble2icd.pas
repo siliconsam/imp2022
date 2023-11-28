@@ -922,6 +922,16 @@ chr(10):
               writeln( fout, r.mnemonic );
             end;
           end;
+'c':      begin
+            (* ALTNEXT *)
+            writeinst( ficd, r.icode );
+
+            if debugFlag then
+            begin
+              tablevels( fout );
+              writeln( fout, r.mnemonic );
+            end;
+          end;
 'd':      begin
             (* DIM *)
             SplitParam := SplitString( params[1], ',' );
@@ -973,6 +983,26 @@ chr(10):
             begin
               tablevels( fout );
               writeln( fout, r.mnemonic,' $',uint1 );
+            end;
+          end;
+'g':      begin
+            (* ALTSTART *)
+            writeinst( ficd, r.icode );
+
+            if debugFlag then
+            begin
+              tablevels( fout );
+              writeln( fout, r.mnemonic );
+            end;
+          end;
+'h':      begin
+            (* ALTEND *)
+            writeinst( ficd, r.icode );
+
+            if debugFlag then
+            begin
+              tablevels( fout );
+              writeln( fout, r.mnemonic );
             end;
           end;
 'i':      begin

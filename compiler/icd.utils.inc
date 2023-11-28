@@ -1,5 +1,6 @@
 %endoflist
 
+    %external %integer     %function %spec get maxtag
     %external              %routine  %spec set symbol data( %integer tag, %string(255) name, %integer tf, size, scope)
     %external %string(255) %function %spec get symbol name( %integer tag )
     %external %string(15)  %function %spec get own String( %integer flags )

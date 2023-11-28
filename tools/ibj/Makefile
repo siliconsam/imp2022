@@ -55,7 +55,7 @@ coff2dump:
 > fpc -gl coff2dump.pas
 
 slimibj:
-> imp77link slimibj ibjconversion symbols externals locals labels boolean
+> imp77link slimibj ibjconversion symbols labels
 
 
 

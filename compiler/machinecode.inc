@@ -103,7 +103,7 @@
     %string(255) name
     %integer value
     %integer offset 
-    %switch sw(0:6)
+    %switch sw(unknown:pointer)
 
     name = params( index )_name
     value = params( index )_value
@@ -114,6 +114,14 @@
 
     ->sw(params(index)_type)
 
+    sw(unknown):
+        ! dump the unknown data
+        printstring(" UNKNOWN")
+        printstring(" name="); printstring(name)
+        printstring(" value="); printstring(itos(value,0))
+        printstring(" offset="); printstring(itos(offset,0))
+        -> esac
+
     sw(variable):
         ! dump the variable data
         dump tag var( value, "VAR" )
@@ -121,26 +129,27 @@
 
     sw(register):
         ! dump the register data
-        printstring(" REG name=".name)
+        printstring(" REG")
+        printstring(" name="); printstring(name)
         -> esac
 
     sw(number):
         ! dump the number data
-        printstring(" NUMBER value=".itos(value,0))
+        printstring(" NUMBER")
+        printstring(" value="); printstring(itos(value,0))
         -> esac
 
     sw(pointer):
         ! dump the pointer data
-        printstring(" PTR name=[".name)
+        printstring(" PTR")
+        printstring(" name="); printstring("["); printstring(name)
         %if (offset # 0) %start
             %if (offset > 0) %then printsymbol('+')
             printstring(itos(offset,0))
         %finish
-        printstring("] offset=".itos(offset,0))
+        printstring("]")
         -> esac
 
-    sw(*):
-        -> esac
     esac:
     newline
 %end
@@ -230,7 +239,9 @@
 
             r = name2reg( "%".t )
             %if (r # -1) %start
-                params( params count )_type  = register
+                %if (insbflag = 0) %start
+                    params( params count )_type  = register
+                %finish
                 params( params count )_value = r
             %finish
 
@@ -350,7 +361,7 @@
             plusFlag = 0
             minusFlag = 1
             -> default
-                    
+
      c('['):
             ! we are referencing an indirect variable
             ! initialise the name,value and offset
@@ -371,7 +382,7 @@
             -> default
 
     default:
-     c(*):
+     c( * ):
             ! pass these chars
             ! chars > 127 are already dealt with
             ! So, this deals with remaining chars
@@ -432,6 +443,7 @@
     ! JDM JDM debug show the instruction and decoded parameters
     %if (diagnose&8 # 0) %start
         spaces(4)
+        printstring("INSTRUCTION=")
         printstring( instruction )
 
         %if (params count # 0) %start

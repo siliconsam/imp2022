@@ -1,0 +1,28 @@
+
+    ! Store a simple value
+    %dynamic %integer fubar %alias "fubar" = 4
+
+    ! Store a simple count
+    %dynamic %integer count %alias "count" = 6
+
+    %dynamic %routine zerocount %alias "xzero"
+        count = 0
+    %end
+
+    %dynamic %routine increment %alias "xinc"
+        count = count + 1
+    %end
+
+    %dynamic %routine decrement %alias "xdec"
+        count = count - 1
+    %end
+
+    %dynamic %integer %function value %alias "xvalue"
+        %result = count
+    %end
+
+    %system %routine getPC %alias "get_pc"
+        *mov _	%eax, [%ebp+4]
+    %end
+
+%endoffile

@@ -751,6 +751,16 @@ chr(10):
               writeinst( ficd, r.icode );
             end;
           end;
+'c':      begin
+            (* ALTNEXT *)
+            tablevels( fout );
+            writeln( fout, r.mnemonic );
+
+            if debugFlag then
+            begin
+              writeinst( ficd, r.icode );
+            end;
+          end;
 'd':      begin
             (* DIM *)
             uint1 := readtag(fin);
@@ -795,8 +805,26 @@ chr(10):
               writeTag( ficd, uint1 );
             end;
           end;
-// g
-// h
+'g':      begin
+            (* ALTSTART *)
+            tablevels( fout );
+            writeln( fout, r.mnemonic );
+
+            if debugFlag then
+            begin
+              writeinst( ficd, r.icode );
+            end;
+          end;
+'h':      begin
+            (* ALTEND *)
+            tablevels( fout );
+            writeln( fout, r.mnemonic );
+
+            if debugFlag then
+            begin
+              writeinst( ficd, r.icode );
+            end;
+          end;
 'i':      begin
             (* INDEX *)
             tablevels( fout );

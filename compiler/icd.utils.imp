@@ -5,17 +5,25 @@
     %owninteger Pending
 
     %constant %integer max symbols = 1024
+    %own %integer maxtag = 0
 
     ! This represents the initial defined attributes of a symbol
     %recordformat  symbolfm( %string(255) name,
                              %integer tf,size,scope )
     %own %record(symbolfm)%array  symbol(0:max symbols)
 
+    ! Debug routine to see the maximum symbols defined
+    %external %integer %function getmaxtag
+        %result = maxtag
+    %end
+
     %external %routine set symbol data( %integer tag, %string(255) name, %integer tf, size, scope)
         symbol( tag )_name = name
         symbol( tag )_tf = tf
         symbol( tag )_size = size
         symbol( tag )_scope = scope
+
+        %if (tag > maxtag) %then maxtag = tag
     %end
 
     %external %string(255) %fn get symbol name( %integer tag )
@@ -398,11 +406,12 @@
         c(iCodeSLABEL):     s = "SLABEL";    -> esac
         c(iCodeACCESS):     s = "ACCESS";    -> esac
         c(iCodeBOUNDS):     s = "BOUNDS";    -> esac
-
+        c(iCodeALTNEXT):    s = "ALTNEXT";   -> esac
         c(iCodeDIM):        s = "DIM";       -> esac
         c(iCodeEVENT):      s = "EVENT";     -> esac
         c(iCodeFOR):        s = "FOR";       -> esac
-
+        c(iCodeALTSTART):   s = "ALTSTART";  -> esac
+        c(iCodeALTEND):     s = "ALTEND";    -> esac
         c(iCodeINDEX):      s = "INDEX";     -> esac
         c(iCodeJAM):        s = "JAM";       -> esac
         c(iCodeJZ):         s = "JZ";        -> esac

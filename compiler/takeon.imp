@@ -763,5 +763,6 @@ l10:    select output(dlist);  newlines(2)
     printstring("%endoffile");  newline
 
     selectoutput(errorstream)
-    printstring("Grammar complete");  newline
+    newline
+    printstring("Grammar complete");  newlines(2)
 %endofprogram

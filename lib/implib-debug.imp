@@ -18,7 +18,6 @@
         debuglevel = level
     %end
 
-{----------------------------------------------------------------------------}
     %external %routine debug space
         debugsymbol( ' ' )
     %end

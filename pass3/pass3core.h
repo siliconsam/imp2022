@@ -17,7 +17,7 @@ void writeobjectrecord(FILE *outfile, int type, int count, unsigned char * data)
 #define IF_REFEXT      12 // M - external name relative offset code word
 #define	IF_BSS         13 // N - BSS segment offset code word
 #define IF_COTWORD     14 // O - Constant table word
-#define IF_DATWORD     15 // P - Data segment word
+#define IF_DATWORD     15 // P - Data section word (repeated) with repeat count
 #define IF_SWTWORD     16 // Q - switch table entry - actually a label ID
 #define	IF_SOURCE      17 // R - name of the source file
 #define IF_DEFEXTCODE  18 // S - define a code label that is external

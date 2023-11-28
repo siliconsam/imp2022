@@ -83,6 +83,7 @@ implementation
     condition    : byte;
     specId       : integer;
     offset       : longint;
+    count        : integer;
 
     // pass specific variables
     // cPassCoffCreate variables
@@ -1105,9 +1106,10 @@ cPassCompactWrite:
 IF_DATWORD:
         begin
           // Data segment word
-          checkSize( WORDSIZE div 2 );
+          checkSize( WORDSIZE  );
           shortdata[1] := readByte( copy(theData, 1, 2 ) );
           shortdata[2] := readByte( copy(theData, 3, 2 ) );
+          count        := readword( copy(theData, 5, 4 ) );
 
           case passId of
 cPassCoffCreate:
@@ -1127,7 +1129,9 @@ cPassCoffWrite:
 cPassAssemble:
             begin
               write(fout,'IF_DATWORD,');
-              write(fout,theData);
+              write(fout,copy(theData,1,4));
+              write(fout,',');
+              write(fout, count );
               writeln(fout);
             end;
 cPassCompactRead:
@@ -1257,6 +1261,12 @@ cPassCoffWrite:
             end;
 cPassAssemble:
             begin
+              nameId := newName( name );
+              if (nameId = -1) then errorFlag := true;
+
+              specId := newSpec( nameId ); // assume this is an external code name
+              if (specId = -1) then errorFlag := true;
+
               write(fout,'IF_DEFEXTCODE,');
               write(fout,'"');
               write(fout,name);
@@ -1297,6 +1307,14 @@ cPassCoffWrite:
             end;
 cPassAssemble:
             begin
+              nameId := newName( name );
+              if (nameId = -1) then errorFlag := true;
+
+              specId := newSpec( nameId ); // assume this is an external code name
+              if (specId = -1) then errorFlag := true;
+
+              setSpecIsdata( specId );
+
               write(fout,'IF_DEFEXTDATA,');
               write(fout,'"');
               write(fout,name);
