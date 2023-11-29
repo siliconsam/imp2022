@@ -1,0 +1,9 @@
+{------------------------------------------------------------------------------}
+%recordformat imptrap( %integer start,end,trapep,from, %byte %array data(0:15) )
+
+%external %integer trapend %alias "trapend"
+!%external %record(imptrap) trapend %alias "trapend"
+
+!%external %string(31) trapend %alias "_imptrap_end" = ""
+{------------------------------------------------------------------------------}
+%endoffile
