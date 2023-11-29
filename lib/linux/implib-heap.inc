@@ -8,9 +8,11 @@
     !
 {----------------------------------------------------------------------------}
     %external            %routine %spec impfree %c
-                                 %alias "free" ( %integer templateaddr )
+                                 %alias "free" %c
+                                 ( %integer templateaddr )
     %external %record(*) %map     %spec impmalloc %c
-                                 %alias "malloc" ( %integer s )
+                                 %alias "malloc" %c
+                                 ( %integer s )
 {----------------------------------------------------------------------------}
 %list
 %endoffile

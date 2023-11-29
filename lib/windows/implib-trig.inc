@@ -7,8 +7,12 @@
     ! Declare useful trignometry functions
     !
 {----------------------------------------------------------------------------}
-    %external %long %real %fn %spec C Lib Cos %alias "_cos" ( %longreal r)
-    %external %long %real %fn %spec C Lib Sine %alias "_sin" ( %longreal r)
+    %external %long %real %fn %spec C Lib Cos %c
+                                    %alias "_cos" %c
+                                    ( %longreal r)
+    %external %long %real %fn %spec C Lib Sine %c
+                                    %alias "_sin" %c
+                                    ( %longreal r)
 {----------------------------------------------------------------------------}
 %list
 %endoffile
