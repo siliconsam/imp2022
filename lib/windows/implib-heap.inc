@@ -7,10 +7,10 @@
     ! declare heap access routines
     !
 {----------------------------------------------------------------------------}
-    %external %routine        %spec impfree %c
-                             %alias "_free" ( %integer templateaddr )
-    %external %record(*) %map %spec impmalloc %c
-                             %alias "_malloc" ( %integer s )
+    %external            %routine %spec impfree %c
+                                 %alias "_free" ( %integer templateaddr )
+    %external %record(*) %map     %spec impmalloc %c
+                                 %alias "_malloc" ( %integer s )
 {----------------------------------------------------------------------------}
 %list
 %endoffile
