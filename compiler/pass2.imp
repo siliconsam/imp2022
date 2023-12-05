@@ -796,6 +796,7 @@
 
     ! define the IBJ record types
     %include "ibj.types.inc"
+
     ! include the IMP code to:
     ! 1) remember the IBJ output stream
     ! 2) routine to output a number X to P hex digits
@@ -5459,7 +5460,9 @@ roper(EXPx):
         %routine  assign(%integer  assop )
             %record(stackfm)%name  lh,rh
             %record(stackfm)  temp
-            %integer  n, p, form, r
+            %integer  n
+            %integer  p
+            %integer  r
 
             abort("Assign Stack") %if (stp < 2)
 
@@ -5471,9 +5474,6 @@ roper(EXPx):
                 monitor(rh, "ASS RH")
             %finish
 
-            ! to avoid the ravages of amap, load etc
-            form = lh_form
-   
             %if same(lh, rh) %then %start
                 pop rel
                 pop rel
@@ -6117,13 +6117,15 @@ roper(EXPx):
                 abort("Illegal %prim macro") %unless (0 < t < 15)
 
 !                ! JDM JDM show start of macro "call" in listing
-!                ! Now to say which macro was requested
-!                selectoutput(listout)
-!                spaces(38)
-!                printstring( "Generating CODE for '" )
-!                printstring( macroname(t) )
-!                printstring( "' (MACRO ".itos(t,0).")")
-!                newline
+!                ! Now to say which macro was requested 
+!                 %if (diagnose&16 # 0) %start
+!                        selectoutput(listout)
+!                        spaces(38)
+!                        printstring( "Generating CODE for '" )
+!                        printstring( macroname(t) )
+!                        printstring( "' (MACRO ".itos(t,0).")")
+!                        newline
+!                %finish
 
                 -> b(t)
 b(1):
@@ -6183,25 +6185,28 @@ b(13):
                 loadreg(top, anyf)
                 release(top_base)
                 p = getwork(word size)
-                dumpfloprm(FSTI, EBP, p, 0 )
-!                top_type = integer
                 top_type = new type(t)
                 top_form = V in S
                 top_base = EBP
                 top_disp = p
+                top_size = word size
+                dumpfloprm(FSTI, top_base, top_disp, 0 )
+                top_scope = 0
+
                                                 -> esac
 
 esac:
 !                ! JDM JDM show macro "call" in listing
 !                ! Now to say which macro was requested
-!                selectoutput(listout)
-!                spaces(38)
-!                printstring( "CALL '" )
-!                printstring( macroname(t) )
-!                printstring( "' (MACRO ".itos(t,0).")")
-!                newline
+!                %if (diagnose&16 #0) %start
+!                    spaces(38)
+!                    printstring( "CALL '" )
+!                    printstring( macroname(t) )
+!                    printstring( "' (MACRO ".itos(t,0).")")
+!                    newline
+!                %finish
 
-            %else
+            %finish %else %start
                 !   -- normal routine calls --
                 ! String functions have a hidden last parameter to point
                 ! to the result area
