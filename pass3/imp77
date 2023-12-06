@@ -104,15 +104,24 @@ fi
 
 ${P1_PROG} $1,${INC_DIR}/stdperm.imp=${SRCNAME}.icd,${LISTFILE}
 if [ $? -ne 0 ] ; then
+    echo "imp77: Compilation failure in pass1 for $1"
 	exit 1
 fi
 
 ${P2_PROG} ${SRCNAME}.icd,$1=${SRCNAME}.ibj,${CODEFILE}
+if [ $? -ne 0 ] ; then
+    echo "imp77: Compilation failure in pass2 for $1"
+	exit 1
+fi
 if ${TIDY_MODE}; then
 	rm ${SRCNAME}.icd
 fi
 
 ${P3_PROG} ${SRCNAME}.ibj ${SRCNAME}.o
+if [ $? -ne 0 ] ; then
+    echo "imp77: Compilation failure in pass3 for $1"
+	exit 1
+fi
 if ${TIDY_MODE}; then
 	rm ${SRCNAME}.ibj
 fi
@@ -120,6 +129,10 @@ fi
 if ${DO_LINK}; then
     # Linker
     gcc -m32 -no-pie -o ${SRCNAME} ${SRCNAME}.o ${LINK_OPT}
+    if [ $? -ne 0 ] ; then
+        echo "imp77: Linking failure for program $1"
+        exit 1
+    fi
 	if ${TIDY_MODE}; then
 		rm ${SRCNAME}.o
 	fi
