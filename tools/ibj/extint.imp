@@ -1,9 +1,0 @@
-%external %short bilbo = 7
-
-%external %short %array baggins(1:3) = 2,3,5
-
-%external %routine inc bilbo
-    bilbo = bilbo + 1
-%end
-
-%end %of %file
