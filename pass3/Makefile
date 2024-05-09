@@ -1,6 +1,6 @@
 .RECIPEPREFIX = >
 
-CC = gcc -m32
+CC = gcc $(M32)
 CCFLAGS = -O
 
 BASEDIR = /usr/local

@@ -1,5 +1,5 @@
 .RECIPEPREFIX = >
-CC = gcc -m32
+CC = gcc $(M32)
 CCFLAGS = -O
 
 # LOOK! Change these three if they don't match your local policies

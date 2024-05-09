@@ -3472,7 +3472,8 @@ out1:
                 ! INTEGER
 ! JDM JDM            type = byte  %and round = 0 %if size = 2
                 type = byte %if size = 2
-                type = short %if size = 3
+! JDM by default a %short variable is changed to a 4-byte %integer variable
+!                type = short %if size = 3
                 size = vsize(type)
             %finish %else %if (type = real) %start
                 ! REAL
